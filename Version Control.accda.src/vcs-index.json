@@ -1,0 +1,494 @@
+﻿{
+  "Info": {
+    "Class": "clsVCSIndex",
+    "Description": "Version Control System Index"
+  },
+  "Items": {
+    "MergeBuildDate": null,
+    "FullBuildDate": "16.08.2021 17:05:12",
+    "ExportDate": "16.08.2021 17:04:14",
+    "FullExportDate": "16.08.2021 17:04:14",
+    "OptionsHash": "cec7905",
+    "LastMergedCommit": "",
+    "Components": {
+      "Forms": {
+        "frmVCSInstall.bas": {
+          "ExportDate": "16.08.2021 17:04:11",
+          "SourceModified": "16.08.2021 17:04:11",
+          "FilePropertiesHash": "5702bdc",
+          "ImportDate": "16.08.2021 17:05:09"
+        },
+        "frmVCSMain.bas": {
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "5b9a93c",
+          "ImportDate": "16.08.2021 17:05:09"
+        },
+        "frmVCSOptions.bas": {
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "96ec30e",
+          "ImportDate": "16.08.2021 17:05:09"
+        }
+      },
+      "Macros": {
+        "autoexec.bas": {
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "7f8fb6e",
+          "ImportDate": "16.08.2021 17:05:05"
+        }
+      },
+      "Modules": {
+        "clsAdpFunction.cls": {
+          "Hash": "c74a8ad",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "ec4baae",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsAdpProcedure.cls": {
+          "Hash": "9b5f8aa",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "2feaef6",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsAdpServerView.cls": {
+          "Hash": "206f3bb",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "0917052",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsAdpTable.cls": {
+          "Hash": "281fff5",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "47be73b",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsAdpTrigger.cls": {
+          "Hash": "59390a8",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "684380d",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsConcat.cls": {
+          "Hash": "f35b79f",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "d6fa545",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbDocument.cls": {
+          "Hash": "ba0ca93",
+          "ExportDate": "16.08.2021 17:04:14",
+          "SourceModified": "16.08.2021 17:04:14",
+          "FilePropertiesHash": "251c11e",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbForm.cls": {
+          "Hash": "f1c58ab",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "9b3a3b7",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbHiddenAttribute.cls": {
+          "Hash": "0e88626",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "ecc33ff",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbImexSpec.cls": {
+          "Hash": "2c57f6d",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "d794e71",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbMacro.cls": {
+          "Hash": "577e637",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "1079d89",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbModule.cls": {
+          "Hash": "82d615a",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "64007ff",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbNavPaneGroup.cls": {
+          "Hash": "3fc30cb",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "dab416f",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbProject.cls": {
+          "Hash": "ba65720",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "99d0f41",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbProjProperty.cls": {
+          "Hash": "4365144",
+          "ExportDate": "16.08.2021 17:04:14",
+          "SourceModified": "16.08.2021 17:04:14",
+          "FilePropertiesHash": "ca3da5e",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbProperty.cls": {
+          "Hash": "424601e",
+          "ExportDate": "16.08.2021 17:04:14",
+          "SourceModified": "16.08.2021 17:04:14",
+          "FilePropertiesHash": "ce66096",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbQuery.cls": {
+          "Hash": "5e70d21",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "b6fa589",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbRelation.cls": {
+          "Hash": "e6526d3",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "c8a27d1",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbReport.cls": {
+          "Hash": "3963ef1",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "5b7b622",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbSavedSpec.cls": {
+          "Hash": "fed643e",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "216bca2",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbSharedImage.cls": {
+          "Hash": "3b31921",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "23133c3",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "clsDbTableData.cls": {
+          "Hash": "051486a",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "6e7d49c",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbTableDataMacro.cls": {
+          "Hash": "5802c52",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "b77a210",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbTableDef.cls": {
+          "Hash": "5bf9979",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "bf297cb",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbTEMPLATE.cls": {
+          "Hash": "ef4fe43",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "d4f3346",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbTheme.cls": {
+          "Hash": "d93a630",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "67d3f11",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbVbeForm.cls": {
+          "Hash": "9020310",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "ad8f143",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbVbeProject.cls": {
+          "Hash": "2d68fc7",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "ce4e618",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDbVbeReference.cls": {
+          "Hash": "ac521e6",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "87f26aa",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsDevMode.cls": {
+          "Hash": "f7beda8",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "11f9da4",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsGitIntegration.cls": {
+          "Hash": "a4056eb",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "682d9ec",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsLblProg.cls": {
+          "Hash": "371b5cc",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "6603f85",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsLog.cls": {
+          "Hash": "650b3fa",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "3234c18",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsOptions.cls": {
+          "Hash": "07de35e",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "e759b5a",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsPerformance.cls": {
+          "Hash": "7464cbb",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "5beed19",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsPerformanceItem.cls": {
+          "Hash": "c649987",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "5ed5827",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsVCSIndex.cls": {
+          "Hash": "b9c2312",
+          "ExportDate": "16.08.2021 17:04:14",
+          "SourceModified": "16.08.2021 17:04:14",
+          "FilePropertiesHash": "6d47d16",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "clsVersionControl.cls": {
+          "Hash": "bc3a200",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "6a3d179",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "IDbComponent.cls": {
+          "Hash": "b81a4c5",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "803b17a",
+          "ImportDate": "16.08.2021 17:05:08"
+        },
+        "modAddIn.bas": {
+          "Hash": "79b50fe",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "eca3e15",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modAPI.bas": {
+          "Hash": "7b6c4ab",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "d22a522",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modConnect.bas": {
+          "Hash": "12b7e10",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "039b633",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modConstants.bas": {
+          "Hash": "8f85c7a",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "6d51655",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modDatabase.bas": {
+          "Hash": "4b12646",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "5b70643",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modEncoding.bas": {
+          "Hash": "6691676",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "056a0c1",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modFileAccess.bas": {
+          "Hash": "99e5a53",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "3ad01c0",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modFunctions.bas": {
+          "Hash": "f0a6844",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "1deba57",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modHash.bas": {
+          "Hash": "ae32ee0",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "ced3453",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modImportExport.bas": {
+          "Hash": "0503cbc",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "bec0127",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modInstall.bas": {
+          "Hash": "d17da90",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "99c7b35",
+          "ImportDate": "16.08.2021 17:05:06"
+        },
+        "modJsonConverter.bas": {
+          "Hash": "444120a",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "cc6abc4",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modObjects.bas": {
+          "Hash": "ac117cc",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "9776825",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modRepair.bas": {
+          "Hash": "f2abcef",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "8d13ba4",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modSanitize.bas": {
+          "Hash": "9d44f2a",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "4400261",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modSqlFunctions.bas": {
+          "Hash": "e70e49f",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "0e685cf",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modTimer.bas": {
+          "Hash": "c16b245",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "7187b96",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modUnitTesting.bas": {
+          "Hash": "815e4b8",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "68fde83",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modVCSUtility.bas": {
+          "Hash": "2a04a8a",
+          "ExportDate": "16.08.2021 17:04:13",
+          "SourceModified": "16.08.2021 17:04:13",
+          "FilePropertiesHash": "e1d8834",
+          "ImportDate": "16.08.2021 17:05:07"
+        },
+        "modZip.bas": {
+          "Hash": "85e6a88",
+          "ExportDate": "16.08.2021 17:04:12",
+          "SourceModified": "16.08.2021 17:04:12",
+          "FilePropertiesHash": "f845222",
+          "ImportDate": "16.08.2021 17:05:07"
+        }
+      },
+      "Project": {
+        "project.json": {
+          "Hash": "9feedaa",
+          "ExportDate": "16.08.2021 17:04:11",
+          "SourceModified": "16.08.2021 17:04:11",
+          "FilePropertiesHash": "507b9bf",
+          "ImportDate": "16.08.2021 17:05:04"
+        }
+      },
+      "Queries": {
+        "qryNavPaneGroups.bas": {
+          "ExportDate": "16.08.2021 17:04:11",
+          "SourceModified": "16.08.2021 17:04:11",
+          "FilePropertiesHash": "4b0e3fe",
+          "ImportDate": "16.08.2021 17:05:05"
+        }
+      },
+      "VB Project": {
+        "vbe-project.json": {
+          "Hash": "f9b66be",
+          "ExportDate": "16.08.2021 17:04:11",
+          "SourceModified": "16.08.2021 17:04:11",
+          "FilePropertiesHash": "2e320a8",
+          "ImportDate": "16.08.2021 17:05:04"
+        }
+      },
+      "VBE References": {
+        "vbe-references.json": {
+          "Hash": "416cd46",
+          "ExportDate": "16.08.2021 17:04:11",
+          "SourceModified": "16.08.2021 17:04:11",
+          "FilePropertiesHash": "8ba41bf",
+          "ImportDate": "16.08.2021 17:05:05"
+        }
+      }
+    }
+  }
+}
