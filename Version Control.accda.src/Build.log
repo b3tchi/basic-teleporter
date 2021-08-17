@@ -2,7 +2,7 @@
 Beginning Build from Source
 Version Control_build.accda
 VCS Version 3.4.15
-16.08.2021 17:05:04
+17.08.2021 2:12:58
 -------------------------------------
 Saving backup skipped start in New...
 Using cli-made database file Version Control_build.accda
@@ -139,7 +139,7 @@ Importing nav pane groups...
 No hidden attributes source files found.
 Initializing forms...
 -------------------------------------
-Done. (5,05 seconds)
+Done. (5,28 seconds)
 
 --------------------------------------------------
                 PERFORMANCE REPORTS
@@ -151,25 +151,25 @@ VB Project                    1         0,01
 VBE References                1         0,12
 DB Properties                 1         0,05
 Themes                        1         0,28
-Queries                       1         0,01
+Queries                       1         0,02
 Forms                         3         0,36
-Macros                        1         0,01
-Modules                       59        2,81
+Macros                        1         0,00
+Modules                       59        3,03
 Doc Properties                1         0,00
 Nav Pane Groups               1         0,01
 --------------------------------------------------
-TOTALS:                       71        3,69
+TOTALS:                       71        3,92
 --------------------------------------------------
 
 --------------------------------------------------
 Operations                    Count     Seconds
 --------------------------------------------------
-Console Updates               4         0,51
+Console Updates               4         0,54
 Clear References              1         0,00
-Read File                     66        0,38
-Parse JSON                    7         0,02
+Read File                     66        0,03
+Parse JSON                    7         0,03
 Convert to JSON               41        0,02
-Compute SHA256                135       0,03
+Compute SHA256                135       0,02
 Get Modified Date             70        0,02
 Get File Property Hash        70        0,03
 Add GUID References           9         0,09
@@ -179,14 +179,14 @@ Verify Path                   60        0,01
 Delete File                   61        0,03
 App.SaveAsText()              1         0,00
 Read File Bytes               1         0,00
-App.LoadFromText()            5         0,36
+App.LoadFromText()            5         0,35
 Get VBA Hash                  62        0,05
-Parse VBA Module              59        0,07
-Write File                    59        0,07
-Import VBE Module             59        1,17
-Initialize Forms              3         0,94
+Parse VBA Module              59        0,06
+Write File                    59        0,08
+Import VBE Module             59        1,73
+Initialize Forms              3         0,92
 --------------------------------------------------
-Other Operations                        1,23
+Other Operations                        1,24
 --------------------------------------------------
 
 
