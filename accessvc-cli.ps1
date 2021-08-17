@@ -44,61 +44,72 @@ function export(
 }
 
 function build(
-  $sourcePath
+  $sourceDir
   ){
 
-  $app = CreateAccess
-  $app.Visible = $true
+  #prepare file names
+  $targetName = ReadJsonConfig $sourceDir
 
-  # TODO create backup
-  if ($sourcePath -like "*.accdb.src"){
+  if ($targetName -like "*.accdb"){
     $suffix = ".accdb"
-  }elseif ($sourcePath -like "*.accda.src"){
+  }elseif ($targetName -like "*.accda"){
     $suffix = ".accda"
   }
 
-  $sourceFile = $sourcePath -replace "$suffix.src", $suffix
+  $buildName = $targetName -replace "$suffix", "_build$suffix"
 
-  # Write-Information "building file form source ... $sourcePath" -InformationAction Continue
-  # Write-Information "building file form source ... $sourceFile" -InformationAction Continue
-  # Write-Information "building file form source ... $suffix" -InformationAction Continue
-  # Write-Information "building file form source ... $workerPath" -InformationAction Continue
+  #create build dir
+  $projectDir = Split-Path -Path $sourceDir
+  $buildDir = Join-Path $projectDir 'build'
+  New-Item -ItemType directory $buildDir -Force
 
-  # $sourceDir = Split-Path -Path $sourcePath
+  #remove build file if exists
+  $targetFile = Join-Path $buildDir $targetName
+  $buildFile = Join-Path $buildDir $buildName
 
-  #building worker script itself
-  if($sourceFile -eq $workerPath){
-    $sourceFile = $sourcePath -replace "$suffix.src", "_build$suffix"
-
-    Write-Information "Building addin file under ... $sourceFile" -InformationAction Continue
+  if(Test-Path -Path $buildFile -PathType Leaf){
+    Remove-Item $buildFile
   }
 
-  #backup file if already exists
-  if(Test-Path -Path $sourceFile -PathType Leaf){
+  #start build process
+  $app = CreateAccess
+  $app.Visible = $true
 
-    $src = (Get-Item "$sourceFile").Name
-    $timestamp = Get-Date -format "yyMMdd-HHmmss"
-    $backupFile = $src -replace "$suffix", "_$timestamp$suffix"
-
-    Rename-Item $sourceFile $backupFile
-    Write-Information "saving original file under ... $backupFile" -InformationAction Continue
-  }
-
-
-  $app.NewCurrentDatabase($sourceFile)
+  $app.NewCurrentDatabase($buildFile)
 
   $ref = $app.References.AddFromFile($workerPath)
 
-  $app.Run("Build_Cli",[ref]$sourcePath,[ref]$true)
+  #run build
+  $app.Run("Build_Cli",[ref]$sourceDir,[ref]$true)
+
+  #read & print log
+  Get-Content (Join-Path $sourceDir "Build.log")
 
   RemoveReference $app "MSAccessVCS"
-
-  #read log
-  Get-Content "$sourcePath/Build.log"
 
   $app.CloseCurrentDatabase()
 
   $app.Quit()
+
+  #arcrhive file if needed
+  if(Test-Path -Path $targetFile -PathType Leaf){
+
+    # Build archive dir
+    $archiveDir = Join-Path $buildDir 'archive'
+    New-Item -ItemType directory $archiveDir -Force
+
+    #Archive old build file
+    $timestamp = Get-Date -format "yyMMdd-HHmmss"
+    $archiveName = $targetName -replace "$suffix", "_$timestamp$suffix"
+
+    Rename-Item $targetFile $archiveName
+    Move-Item (Join-Path $buildDir $archiveName) $archiveDir
+
+    Write-Information "saving original file under ... $backupFile" -InformationAction Continue
+  }
+
+  #rename build as target file
+  Rename-Item $buildFile $targetName
 
 }
 
@@ -146,9 +157,21 @@ function RenameWorker(
   }
 }
 
-export "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb"
+function ReadJsonConfig($sourceFile){
+
+  $projectPath = Join-Path $sourceFile "vbe-project.json"
+
+  $json = (Get-Content "$projectPath" -Raw) | ConvertFrom-Json | Select Items
+
+  return $json.Items.FileName
+
+}
+
+# ReadJsonConfig "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
+
+# export "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb"
 # export $workerPath
 
-build "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
-# build "$workerPath.src"
+# build "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
+build "$workerPath.src"
 
