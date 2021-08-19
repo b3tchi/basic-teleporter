@@ -5,10 +5,15 @@ $workerPath="C:\Users\czJaBeck\Repositories\AccessVCS\Version Control.accda"
 
 function export(
   $appPath
+  ,$sourceDir
   ){
 
   #file exits ?
   $appfile = Get-Item $appPath
+
+  if ($null -eq $sourceDir){
+    $sourceDir = getSourceDir $appPath
+  }
 
   # $appfile.Name
   Write-Information "exporting file "$appfile.Name -InformationAction Continue
@@ -167,11 +172,46 @@ function ReadJsonConfig($sourceFile){
 
 }
 
-# ReadJsonConfig "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
+function getSourceDir(
+  $appPath
+  ){
+
+  $appDir = Split-Path -Path $appPath
+
+  #build
+  if ((Split-Path -Path $appDir -Leaf) -eq 'build'){
+    $projDir = Split-Path -Path $appDir
+  }
+
+  #root
+  if($null -eq $projDir){
+    $projDir = $appDir
+  }
+
+  #find project files within project folder
+  #NTH if multiple items check project by json options
+  $sourceProjFile = (Get-ChildItem -Path $projDir -Recurse -File -Filter "vbe-project.json")[0].FullName
+
+  #if there is not any project file yet use app dir as project dir
+  if($null -eq $sourceProjFile){
+    $sourceDir = Join-Path $projDir "src"
+  }
+  else{
+    $sourceDir = (Split-Path -Path $sourceProjFile)
+  }
+
+  return $sourceDir
+
+}
 
 # export "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb"
 # export $workerPath
 
 # build "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
-build "$workerPath.src"
+# build "$workerPath.src"
+
+#additional tests
+# ReadJsonConfig "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
+# getSourceDir "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb"
+# getSourceDir "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\build\DragAndDropMassacre_Test.accdb"
 
