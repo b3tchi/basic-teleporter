@@ -1,0 +1,192 @@
+﻿-------------------------------------
+Beginning Build from Source
+Version Control_build.accda
+VCS Version 3.4.15
+17.08.2021 2:12:58
+-------------------------------------
+Saving backup skipped start in New...
+Using cli-made database file Version Control_build.accda
+Removing non built-in references...
+  Removed MSAccessVCS
+  Removed DAO
+  Removed stdole
+-------------------------------------
+-------------------------------------
+Importing project...          
+  project.json
+[1]
+-------------------------------------
+Importing vb project...       
+  vbe-project.json
+[1]
+-------------------------------------
+Importing vbe references...   
+  vbe-references.json
+[1]
+-------------------------------------
+No vbe forms source files found.
+-------------------------------------
+No proj properties source files found.
+-------------------------------------
+No saved specs source files found.
+-------------------------------------
+Importing db properties...    
+  dbs-properties.json
+[1]
+-------------------------------------
+No shared images source files found.
+-------------------------------------
+Importing themes...           
+  Office Theme.thmx
+[1]
+-------------------------------------
+No imex specs source files found.
+-------------------------------------
+No tables source files found.
+-------------------------------------
+Importing queries...          
+  qryNavPaneGroups.bas
+[1]
+-------------------------------------
+Importing forms...            
+  frmVCSInstall.bas
+  frmVCSMain.bas
+  frmVCSOptions.bas
+[3]
+-------------------------------------
+Importing macros...           
+  autoexec.bas
+[1]
+-------------------------------------
+No reports source files found.
+-------------------------------------
+No table data source files found.
+-------------------------------------
+Importing modules...          
+  modAddIn.bas
+  modAPI.bas
+  modConnect.bas
+  modConstants.bas
+  modDatabase.bas
+  modEncoding.bas
+  modFileAccess.bas
+  modFunctions.bas
+  modHash.bas
+  modImportExport.bas
+  modInstall.bas
+  modJsonConverter.bas
+  modObjects.bas
+  modRepair.bas
+  modSanitize.bas
+  modSqlFunctions.bas
+  modTimer.bas
+  modUnitTesting.bas
+  modVCSUtility.bas
+  modZip.bas
+  clsAdpFunction.cls
+  clsAdpProcedure.cls
+  clsAdpServerView.cls
+  clsAdpTable.cls
+  clsAdpTrigger.cls
+  clsConcat.cls
+  clsDbDocument.cls
+  clsDbForm.cls
+  clsDbHiddenAttribute.cls
+  clsDbImexSpec.cls
+  clsDbMacro.cls
+  clsDbModule.cls
+  clsDbNavPaneGroup.cls
+  clsDbProject.cls
+  clsDbProjProperty.cls
+  clsDbProperty.cls
+  clsDbQuery.cls
+  clsDbRelation.cls
+  clsDbReport.cls
+  clsDbSavedSpec.cls
+  clsDbSharedImage.cls
+  clsDbTableData.cls
+  clsDbTableDataMacro.cls
+  clsDbTableDef.cls
+  clsDbTEMPLATE.cls
+  clsDbTheme.cls
+  clsDbVbeForm.cls
+  clsDbVbeProject.cls
+  clsDbVbeReference.cls
+  clsDevMode.cls
+  clsGitIntegration.cls
+  clsLblProg.cls
+  clsLog.cls
+  clsOptions.cls
+  clsPerformance.cls
+  clsPerformanceItem.cls
+  clsVCSIndex.cls
+  clsVersionControl.cls
+  IDbComponent.cls
+[59]
+-------------------------------------
+No table data macros source files found.
+-------------------------------------
+No relations source files found.
+-------------------------------------
+Importing doc properties...   
+  documents.json
+[1]
+-------------------------------------
+Importing nav pane groups...  
+  nav-pane-groups.json
+[1]
+-------------------------------------
+No hidden attributes source files found.
+Initializing forms...
+-------------------------------------
+Done. (5,28 seconds)
+
+--------------------------------------------------
+                PERFORMANCE REPORTS
+--------------------------------------------------
+Object Type                   Count     Seconds
+--------------------------------------------------
+Project                       1         0,03
+VB Project                    1         0,01
+VBE References                1         0,12
+DB Properties                 1         0,05
+Themes                        1         0,28
+Queries                       1         0,02
+Forms                         3         0,36
+Macros                        1         0,00
+Modules                       59        3,03
+Doc Properties                1         0,00
+Nav Pane Groups               1         0,01
+--------------------------------------------------
+TOTALS:                       71        3,92
+--------------------------------------------------
+
+--------------------------------------------------
+Operations                    Count     Seconds
+--------------------------------------------------
+Console Updates               4         0,54
+Clear References              1         0,00
+Read File                     66        0,03
+Parse JSON                    7         0,03
+Convert to JSON               41        0,02
+Compute SHA256                135       0,02
+Get Modified Date             70        0,02
+Get File Property Hash        70        0,03
+Add GUID References           9         0,09
+Create MSysResources Table    1         0,01
+Write Binary File             1         0,00
+Verify Path                   60        0,01
+Delete File                   61        0,03
+App.SaveAsText()              1         0,00
+Read File Bytes               1         0,00
+App.LoadFromText()            5         0,35
+Get VBA Hash                  62        0,05
+Parse VBA Module              59        0,06
+Write File                    59        0,08
+Import VBE Module             59        1,73
+Initialize Forms              3         0,92
+--------------------------------------------------
+Other Operations                        1,24
+--------------------------------------------------
+
+

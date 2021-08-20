@@ -16,7 +16,8 @@ function export(
   }
 
   # $appfile.Name
-  Write-Information "exporting file "$appfile.Name -InformationAction Continue
+  Write-Information "exporting file $appfile" -InformationAction Continue
+  Write-Information "exporting file $sourceDir" -InformationAction Continue
 
   $app = CreateAccess
   $app.Visible = $true
@@ -32,14 +33,16 @@ function export(
   }
 
   #export options
-  $localTableWc = "t_*"
-  $printVars = $false
+  [boolean]$fullExport = $true
+  [boolean]$printVars = $false
+  [string]$localTableWc = "t_*"
+  [string]$srcPath = $sourceDir
 
   #export execution
-  $app.Run("Export_Cli", [ref]$true, [ref]$printVars, [ref]$localTableWc)
+  $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVars, [ref]$localTableWc, [ref]$srcPath)
 
   #exportlog
-  Get-Content "$appPath.src/Export.log"
+  Get-Content (Join-Path $sourceDir "Export.log")
 
   RemoveReference $app "MSAccessVCS"
 
@@ -205,7 +208,7 @@ function getSourceDir(
 }
 
 # export "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb"
-# export $workerPath
+export $workerPath
 
 # build "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre_Test.accdb.src"
 # build "$workerPath.src"
