@@ -348,13 +348,16 @@ function export(
   #file exits ?
   $appfile = Get-Item $appPath
 
+  $appPath = $appfile.FullName
+
   if ($null -eq $sourceDir){
     $sourceDir = getSourceDir $appPath
   }
 
   # $appfile.Name
-  Write-Information "exporting file $appfile" -InformationAction Continue
-  Write-Information "exporting file $sourceDir" -InformationAction Continue
+  Write-Information "app file $appfile" -InformationAction Continue
+  Write-Information "app path $appPath" -InformationAction Continue
+  Write-Information "source dir  $sourceDir" -InformationAction Continue
 
   $app = CreateAccess
   $app.Visible = $true
