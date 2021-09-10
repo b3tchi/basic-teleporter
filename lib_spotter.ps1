@@ -340,60 +340,71 @@ function RepoChanged($dbFile,$ExportLocation,$dteChange) {
 
 }
 
-function export(
-  $appPath
-  ,$sourceDir
-  ){
+function export {
+  param(
+    [Parameter(Mandatory=$true)]$appPath
+    ,$sourceDir
+    ,[Nullable[boolean]]$doFullExport
+  )
+  process{
 
-  #file exits ?
-  $appfile = Get-Item $appPath
+    #parameter defaults
+    if ([string]::IsNullOrEmpty($doFullExport)) {$doFullExport = $true}
 
-  $appPath = $appfile.FullName
+    #file exits ?
+    $appfile = Get-Item $appPath
 
-  if ($null -eq $sourceDir){
-    $sourceDir = getSourceDir $appPath
+    $appPath = $appfile.FullName
+
+    if ($null -eq $sourceDir){
+      $sourceDir = getSourceDir $appPath
+    }
+
+    # $appfile.Name
+    Write-Information "app file $appfile" -InformationAction Continue
+    Write-Information "app path $appPath" -InformationAction Continue
+    Write-Information "source dir  $sourceDir" -InformationAction Continue
+    Write-Information "export $doFullExport" -InformationAction Continue
+
+    $app = CreateAccess
+    $app.Visible = $true
+
+    $app.OpenCurrentDatabase($appPath)
+
+    RemoveReference $app "MSAccessVCS"
+
+    if ($workerPath -eq $appPath){
+      Write-Information "exporting worker mode ... " -InformationAction Continue
+    }else{
+      $ref = $app.References.AddFromFile($workerPath)
+    }
+
+    #export options
+    [boolean]$fullExport = $doFullExport
+    [boolean]$printVars = $false
+    [string]$localTableWc = "t_*"
+    [string]$srcPath = $sourceDir
+
+    #export execution
+    $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVars, [ref]$localTableWc, [ref]$srcPath)
+
+    #exportlog
+    Get-Content (Join-Path $sourceDir "Export.log")
+
+    RemoveReference $app "MSAccessVCS"
+
+    $app.CloseCurrentDatabase()
+    $app.Quit()
+
   }
-
-  # $appfile.Name
-  Write-Information "app file $appfile" -InformationAction Continue
-  Write-Information "app path $appPath" -InformationAction Continue
-  Write-Information "source dir  $sourceDir" -InformationAction Continue
-
-  $app = CreateAccess
-  $app.Visible = $true
-
-  $app.OpenCurrentDatabase($appPath)
-
-  RemoveReference $app "MSAccessVCS"
-
-  if ($workerPath -eq $appPath){
-    Write-Information "exporting worker mode ... " -InformationAction Continue
-  }else{
-    $ref = $app.References.AddFromFile($workerPath)
-  }
-
-  #export options
-  [boolean]$fullExport = $true
-  [boolean]$printVars = $false
-  [string]$localTableWc = "t_*"
-  [string]$srcPath = $sourceDir
-
-  #export execution
-  $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVars, [ref]$localTableWc, [ref]$srcPath)
-
-  #exportlog
-  Get-Content (Join-Path $sourceDir "Export.log")
-
-  RemoveReference $app "MSAccessVCS"
-
-  $app.CloseCurrentDatabase()
-  $app.Quit()
-
 }
-
 function build(
   $sourceDir
   ){
+
+  [string]$sourceDir = (Get-Item $sourceDir).FullName
+
+  Write-Information "source dir $sourceDir" -InformationAction Continue
 
   #prepare file names
   $targetName = ReadJsonConfig $sourceDir

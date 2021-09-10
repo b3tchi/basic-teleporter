@@ -1,1 +1,11 @@
+#build dir
 build/
+
+#local repository index
+src/vcs-index.json
+
+#logs
+src/*.log
+
+#any temprorary access files
+*.laccdb
