@@ -345,11 +345,13 @@ function export {
     [Parameter(Mandatory=$true)]$appPath
     ,$sourceDir
     ,[Nullable[boolean]]$doFullExport
+    ,[Nullable[boolean]]$sanitizeQuery
   )
   process{
 
     #parameter defaults
     if ([string]::IsNullOrEmpty($doFullExport)) {$doFullExport = $true}
+    if ([string]::IsNullOrEmpty($sanitizeQuery)) {$sanitizeQuery = $true}
 
     #file exits ?
     $appfile = Get-Item $appPath
@@ -384,9 +386,11 @@ function export {
     [boolean]$printVars = $false
     [string]$localTableWc = "t_*"
     [string]$srcPath = $sourceDir
+    [boolean]$buildFromSql = $true
+    [boolean]$optSanitizeQuery = $true
 
     #export execution
-    $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVars, [ref]$localTableWc, [ref]$srcPath)
+    $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVarS, [ref]$localTableWc, [ref]$srcPath, [ref]$buildFromSql, [ref]$optSanitizeQuery)
 
     #exportlog
     Get-Content (Join-Path $sourceDir "Export.log")
