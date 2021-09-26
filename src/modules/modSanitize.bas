@@ -223,7 +223,10 @@ Public Sub SanitizeFile(strPath As String)
         "Found ${BlockCount} unclosed blocks after sanitizing ${File}.", _
         "${BlockCount}", m_colBlocks.Count), _
         "${File}", strPath), ModuleName & ".SanitizeFile"
-    
+
+Stop
+
+
 Build_Output:
     ' Build the final output
     BuildOutput varLines, strPath
@@ -234,6 +237,268 @@ Build_Output:
     
     ' Log any errors
     CatchAny eelError, "Error sanitizing file " & FSO.GetFileName(strPath), ModuleName & ".SanitizeFile"
+    
+End Sub
+
+
+'---------------------------------------------------------------------------------------
+' Procedure : SanitizeFile
+' Author    : Adam Waller
+' Date      : 11/4/2020
+' Purpose   : Rewritten version of sanitize function
+'---------------------------------------------------------------------------------------
+'
+Public Sub SanitizeQuery(strPath As String)
+
+    Dim strFile As String
+    Dim varLines As Variant
+    Dim lngLine As Long
+    Dim cData As clsConcat
+    Dim strLine As String
+    Dim strTLine As String
+    Dim blnInsideIgnoredBlock As Boolean
+    Dim intIndent As Integer
+    Dim blnIsReport As Boolean
+    Dim blnIsPassThroughQuery As Boolean
+    Dim curStart As Currency
+    Dim strTempFile As String
+
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
+
+    ' Read text from file, and split into lines
+    If HasUcs2Bom(strPath) Then
+        strFile = ReadFile(strPath, "Unicode")
+    Else
+        ' ADP projects may contain mixed Unicode content
+'        If CurrentProject.ProjectType = acADP Then
+'            strTempFile = GetTempFile
+'            ConvertUcs2Utf8 strPath, strTempFile, False
+'            strFile = ReadFile(strTempFile)
+'            DeleteFile strTempFile
+'        Else
+        If DbVersion <= 4 Then
+            ' Access 2000 format exports using system codepage
+            ' See issue #217
+            strFile = ReadFile(strPath, GetSystemEncoding)
+        Else
+            ' Newer versions export as UTF-8 not valid anymore
+            ' Newer versions export as UTF-16
+            strFile = ReadFile(strPath, "utf-16")
+        End If
+'        End If
+    End If
+    
+    Perf.OperationStart "Sanitize Query"
+    varLines = Split(strFile, vbCrLf)
+    
+    If Options.SanitizeLevel = eslNone Then GoTo Build_Output
+
+    ' Set up index of lines to skip
+    ReDim m_SkipLines(0 To UBound(varLines)) As Long
+    m_lngSkipIndex = 0
+    Set m_colBlocks = New Collection
+
+    ' Initialize concatenation class to include line breaks
+    ' after each line that we add when building new file text.
+    curStart = Perf.MicroTimer
+
+    ' Using a do loop since we may adjust the line counter
+    ' during a loop iteration.
+    Do While lngLine <= UBound(varLines)
+        
+        ' Get unmodified and trimmed line
+        strLine = varLines(lngLine)
+        strTLine = Trim$(strLine)
+        
+        ' Improve performance by reducing comparisons
+        If Len(strTLine) > 3 And blnInsideIgnoredBlock Then
+            SkipLine lngLine
+        'ElseIf Len(strTLine) > 60 And StartsWith(strTLine, "0x") Then
+            ' Add binary data line. No need to test this line further.
+        Else
+            ' Run the rest of the tests
+            Select Case strTLine
+            
+                ' File version
+                Case "Version =21"
+                    ' Change version down to 20 to allow import into Access 2010.
+                    ' (Haven't seen any significant issues with this.)
+                    varLines(lngLine) = "Version =20"
+                Case Else
+                
+                'Stop
+                'Keep only mandatory properties
+                Select Case Trim(Split(strTLine, "=")(0))
+                
+                Case "Option" _
+                    , "Operation"
+                    
+                Case "dbBoolean ""ReturnsRecords""" _
+                    , "dbInteger ""ODBCTimeout""" _
+                    , "dbByte ""RecordsetType""" _
+                    , "dbBoolean ""OrderByOn""" _
+                    , "dbByte ""Orientation""" _
+                    , "dbByte ""DefaultView""" _
+                    , "dbBoolean ""FilterOnLoad""" _
+                    , "dbBoolean ""OrderByOnLoad""" _
+                    , "dbBoolean ""TotalsRow""" _
+                    , "dbBoolean ""UseTransaction""" _
+                    , "dbBoolean ""FailOnError"""
+                    
+                'Get whole connection string of DSN less connections longer then one line
+                Case "dbMemo ""Connect"""
+                    
+                    Stop
+                    
+                    intIndent = GetIndent(strLine)
+                     ' Preview the next line, and check the indent level
+                    Do While GetIndent(varLines(lngLine + 1)) > intIndent
+                        lngLine = lngLine + 1
+                    Loop
+                
+                Case Else
+                    SkipLine lngLine
+                End Select
+                
+            End Select
+            
+           
+                
+'                ' Print settings blocks to ignore
+'                Case "PrtMip = Begin", _
+'                    "PrtDevMode = Begin", _
+'                    "PrtDevModeW = Begin", _
+'                    "PrtDevNames = Begin", _
+'                    "PrtDevNamesW = Begin"
+'                    ' Set flag to ignore lines inside this block.
+'                    blnInsideIgnoredBlock = True
+'                    SkipLine lngLine
+'
+'                ' Aggressive sanitize blocks
+'                Case "GUID = Begin", _
+'                    "NameMap = Begin", _
+'                    "dbLongBinary ""DOL"" = Begin", _
+'                    "dbBinary ""GUID"" = Begin"
+'                    If Options.AggressiveSanitize Then
+'                        blnInsideIgnoredBlock = True
+'                        SkipLine lngLine
+'                    End If
+'
+'                ' Single lines to ignore (#249)
+'                Case "NoSaveCTIWhenDisabled =1", _
+'                    "AllowPivotTableView =0", _
+'                    "AllowPivotChartView =0"
+'                    SkipLine lngLine
+'
+'                ' Publish option (used in Queries)
+'                Case "dbByte ""PublishToWeb"" =""1""", _
+'                    "PublishOption =1"
+'                    If Options.StripPublishOption Then SkipLine lngLine
+'
+'                ' End of block section
+'                Case "End"
+'                    If blnInsideIgnoredBlock Then
+'                        ' Reached the end of the ignored block.
+'                        blnInsideIgnoredBlock = False
+'                        SkipLine lngLine
+'                    Else
+'                        ' Check for theme color index
+'                        CloseBlock
+'                    End If
+'
+'                ' See if this file is from a report object
+'                Case "Begin Report"
+'                    ' Turn flag on to ignore Right and Bottom lines
+'                    blnIsReport = True
+'                    BeginBlock
+'
+'                ' Beginning of main section
+'                Case "Begin"
+'                    BeginBlock
+'                    If blnIsPassThroughQuery And Options.AggressiveSanitize Then
+'                        ' Ignore remaining content. (See Issue #182)
+'                        Do While lngLine < UBound(varLines)
+'                            SkipLine lngLine
+'                            lngLine = lngLine + 1
+'                        Loop
+'                        Exit Do
+'                    End If
+'
+'                ' Code section behind form or report object
+'                Case "CodeBehindForm"
+'                    ' Keep everything from this point on
+'                    Exit Do
+'
+'                Case Else
+'                    If blnInsideIgnoredBlock Then
+'                        ' Skip content inside ignored blocks.
+'                        SkipLine lngLine
+'                    ElseIf StartsWith(strTLine, "Checksum =") Then
+'                        ' Ignore Checksum lines, since they will change.
+'                        SkipLine lngLine
+'                    ElseIf StartsWith(strTLine, "BaseInfo =") Then
+'                        ' BaseInfo is used with combo boxes, similar to RowSource.
+'                        ' Since the value could span multiple lines, we need to
+'                        ' check the indent level of the following lines to see how
+'                        ' many lines to skip.
+'                        SkipLine lngLine
+'                        intIndent = GetIndent(strLine)
+'                        ' Preview the next line, and check the indent level
+'                        Do While GetIndent(varLines(lngLine + 1)) > intIndent
+'                            ' Skip previewed line and move to next line
+'                            SkipLine lngLine + 1
+'                            lngLine = lngLine + 1
+'                        Loop
+'                    ElseIf blnIsReport And StartsWith(strLine, "    Right =") Then
+'                        ' Ignore this line. (Not important, and frequently changes.)
+'                        SkipLine lngLine
+'                    ElseIf blnIsReport And StartsWith(strLine, "    Bottom =") Then
+'                        ' Turn flag back off now that we have ignored these two lines.
+'                        SkipLine lngLine
+'                        blnIsReport = False
+'                    ElseIf StartsWith(strTLine, "Begin ") Then
+'                        ' Include block type name for controls
+'                        BeginBlock Mid$(strTLine, 7)
+'                    ElseIf EndsWith(strTLine, " = Begin") Then
+'                        BeginBlock
+'                    Else
+'                        ' All other lines will be added.
+'
+'                        ' Check for color properties
+'                        If InStr(1, strTLine, " =") > 1 Then CheckColorProperties strTLine, lngLine
+'
+'                        ' Check for pass-through query connection string
+'                        If StartsWith(strLine, "dbMemo ""Connect"" =""") Then
+'                            blnIsPassThroughQuery = True
+'                        End If
+'                    End If
+            
+'            End Select
+        End If
+    
+        ' Increment counter to next line
+        lngLine = lngLine + 1
+    Loop
+    
+    ' Ensure that we correctly processed the nested block sequence.
+    If m_colBlocks.Count > 0 Then Log.Error eelWarning, Replace(Replace( _
+        "Found ${BlockCount} unclosed blocks after sanitizing ${File}.", _
+        "${BlockCount}", m_colBlocks.Count), _
+        "${File}", strPath), ModuleName & ".SanitizeQuery"
+
+'Stop
+
+
+Build_Output:
+    ' Build the final output
+    BuildOutput varLines, strPath
+
+    ' Log performance
+    Perf.OperationEnd
+    Log.Add "    Sanitized in " & Format$(Perf.MicroTimer - curStart, "0.000") & " seconds.", Options.ShowDebug
+    
+    ' Log any errors
+    CatchAny eelError, "Error sanitizing file " & FSO.GetFileName(strPath), ModuleName & ".SanitizeQuery"
     
 End Sub
 

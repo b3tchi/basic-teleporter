@@ -44,6 +44,8 @@ Public HashAlgorithm As String
 Public UseShortHash As Boolean
 Public BreakOnError As Boolean
 Public PreserveRubberDuckID As Boolean
+Public SanitizeQuery As Boolean
+
 
 ' Constants for enum values
 ' (These values are not permanently stored and
@@ -83,6 +85,7 @@ Public Sub LoadDefaults()
         .ShowVCSLegacy = True
         .HashAlgorithm = DefaultHashAlgorithm
         .UseShortHash = True
+        .SanitizeQuery = True
 
         ' Table data export
         Set .TablesToExportData = New Dictionary
@@ -651,6 +654,7 @@ Private Sub Class_Initialize()
         .Add "UseShortHash"
         .Add "BreakOnError"
         .Add "PreserveRubberDuckID"
+        .Add "SanitizeQuery"
     End With
 
     ' Load default values

@@ -176,7 +176,17 @@ Public Sub SaveComponentAsText(intType As AcObjectType, _
             SanitizeFile strTempFile
             FSO.MoveFile strTempFile, strFile
     
-        Case acQuery, acMacro
+        Case acQuery
+            If FSO.FileExists(strFile) Then DeleteFile strFile
+            Stop
+            If Options.SanitizeQuery Then
+                SanitizeQuery strTempFile
+            Else
+                SanitizeFile strTempFile
+            End If
+            FSO.MoveFile strTempFile, strFile
+    
+        Case acMacro
             ' Sanitizing converts to UTF-8
             If FSO.FileExists(strFile) Then DeleteFile strFile
             SanitizeFile strTempFile

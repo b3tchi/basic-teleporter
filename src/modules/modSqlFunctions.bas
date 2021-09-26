@@ -160,3 +160,20 @@ Public Function StripDboPrefix(strName As String) As String
         StripDboPrefix = strName
     End If
 End Function
+
+
+'simple formatting for sql from nolongerset - BIG THANK YOU!!!
+
+Public Function b3AddLineBreaks(Txt) 'As String
+
+    Dim s
+    s = Txt
+    s = Replace(s, " RIGHT JOIN ", vbCrLf & " RIGHT JOIN ")
+    s = Replace(s, " INNER JOIN ", vbCrLf & " INNER JOIN ")
+    s = Replace(s, " LEFT JOIN ", vbCrLf & " LEFT JOIN ")
+    s = Replace(s, " ON ", vbCrLf & " ON ")
+    s = Replace(s, " AND ", vbCrLf & " AND ")
+    s = Replace(s, " OR ", vbCrLf & " OR ")
+    s = Replace(s, ", ", vbCrLf & ", ")
+    b3AddLineBreaks = s
+End Function
