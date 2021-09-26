@@ -4,7 +4,7 @@
     "AccessVersion": "16.0 64-bit"
   },
   "Options": {
-    "ExportFolder": "C:\\Users\\czJaBeck\\Repositories\\AccessVCS\\src",
+    "ExportFolder": "C:\\Users\\czJaBeck\\Dev\\Repositories\\AccessVCS\\src",
     "ShowDebug": false,
     "UseFastSave": true,
     "UseGitIntegration": false,
@@ -32,7 +32,7 @@
       "TTOption": false
     },
     "SaveQuerySQL": true,
-    "ForceImportOriginalQuerySQL": false,
+    "ForceImportOriginalQuerySQL": true,
     "SaveTableSQL": true,
     "StripPublishOption": true,
     "SanitizeColors": 1,
@@ -54,6 +54,7 @@
     "HashAlgorithm": "SHA256",
     "UseShortHash": true,
     "BreakOnError": false,
-    "PreserveRubberDuckID": false
+    "PreserveRubberDuckID": false,
+    "SanitizeQuery": true
   }
 }
