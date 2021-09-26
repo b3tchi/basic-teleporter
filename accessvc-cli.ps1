@@ -1,14 +1,8 @@
-Import-Module "C:\Users\czJaBeck\Repositories\AccessVCS\lib_spotter.ps1"
+Import-Module ".\lib_spotter.ps1"
 
-# $workerPath="\Version Control.accda"
-# $workerPath="C:\Users\czJaBeck\Repositories\AccessVCS\Version Control_Test.accda"
+$workerPath=".\Version Control.accda"
 
-#Kanban Export
-# export "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\DragAndDropMassacre.accdb"
-
-build "C:\Users\czJaBeck\OneDrive\DevProjects\AccessKanban\src"
-
-# export $workerPath
+export $workerPath
 
 # build "$workerPath.src"
 
