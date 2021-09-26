@@ -23,12 +23,14 @@ Public Sub Export_Cli( _
     , optSavePrintVars As Boolean _
     , exportdataPrefix As String _
     , sourceFolder As String _
+    , optForceImportSql As Boolean _
+    , optSanitizeQuerySql As Boolean _
     )
 
     Set Options = Nothing
 
     'try to load if exists
-    On Error Resume Next
+    On Error Resume Next:
     Options.LoadProjectOptions
     On Error GoTo 0
     
@@ -36,6 +38,8 @@ Public Sub Export_Cli( _
     Options.SavePrintVars = optSavePrintVars
     Options.AddLocalTablesToExportData etdXML, exportdataPrefix
     Options.ExportFolder = sourceFolder
+    Options.ForceImportOriginalQuerySQL = optForceImportSql
+    Options.SanitizeQuery = optSanitizeQuerySql
     
     'save
     Options.SaveOptionsForProject
