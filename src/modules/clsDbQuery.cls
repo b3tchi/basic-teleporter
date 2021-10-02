@@ -54,7 +54,58 @@ Private Sub IDbComponent_Export()
         Log.Add "  " & m_Query.Name & " (SQL)", Options.ShowDebug
     End If
     
+    Call QueryJsonParametersExport(dbs.QueryDefs(m_Query.Name))
+   
 End Sub
+
+Private Function QueryJsonParametersExport(ByRef qdf As QueryDef) As Boolean
+
+ ' Linked table - Save as JSON
+    'Stop
+    
+    Dim cnt As String
+    
+    cnt = ""
+    
+    On Error Resume Next
+    cnt = SanitizeConnectionString(qdf.Connect)
+    On Error GoTo 0
+    
+    Dim dItem As Dictionary
+    Set dItem = New Dictionary
+    
+    On Error Resume Next
+    
+    With dItem
+        
+        .Add "Name", qdf.Name
+        .Add "Connect", cnt
+        .Add "Type", qdf.Type
+        .Add "ReturnsRecords", qdf.Properties("ReturnsRecords").Value
+        .Add "Connect", qdf.Properties("Connect").Value
+        .Add "Updatable", qdf.Properties("Updatable").Value
+        .Add "ODBCTimeout", qdf.Properties("ODBCTimeout").Value
+        .Add "RecordLocks", qdf.Properties("RecordLocks").Value
+        .Add "UseTransaction", qdf.Properties("UseTransaction").Value
+        .Add "TotalsRow", qdf.Properties("TotalsRow").Value
+        .Add "LogMessages", qdf.Properties("LogMessages").Value
+        .Add "FailOnError", qdf.Properties("FailOnError").Value
+        .Add "ReadOnlyWhenDisconnected", qdf.Properties("ReadOnlyWhenDisconnected").Value
+ 
+    End With
+    
+    On Error GoTo 0
+    
+
+    
+    ' Write export file.
+    Dim strFile As String
+    strFile = IDbComponent_BaseFolder & GetSafeFileName(qdf.Name) & ".json"
+    WriteJsonFile TypeName(Me), dItem, strFile, "Query Access Properties"
+    
+End Function
+
+
 
 
 '---------------------------------------------------------------------------------------
@@ -72,13 +123,13 @@ Private Sub IDbComponent_Import(strFile As String)
     Dim strSql As String
     
     ' Only import files with the correct extension.
-    If Not strFile Like "*.bas" Then Exit Sub
+    If Not strFile Like "*.sql" Then Exit Sub '"*.bas"
     
     ' Import query from file
     strQueryName = GetObjectNameFromFileName(strFile)
-    LoadComponentFromText acQuery, strQueryName, strFile
-    Set m_Query = CurrentData.AllQueries(strQueryName)
-    VCSIndex.Update Me, eatImport
+    'LoadComponentFromText acQuery, strQueryName, strFile
+    'Set m_Query = CurrentData.AllQueries(strQueryName)
+    'VCSIndex.Update Me, eatImport
     
     ' In some cases, such as when a query contains a subquery, AND has been modified in the
     ' visual query designer, it may be imported incorrectly and unable to run. For these
@@ -89,11 +140,19 @@ Private Sub IDbComponent_Import(strFile As String)
     ' Check option to import exact query from SQL
     If Options.ForceImportOriginalQuerySQL Then
     
+        'CurrentDb.CreateQueryDef(""
+    
         ' Replace .bas extension with .sql to get file content
-        strFileSql = Left$(strFile, Len(strFile) - 4) & ".sql"
+        strFileSql = strFile 'Left$(strFIle, Len(strFIle) - 4) & ".sql"
         
         ' Tries to get SQL content from the SQL file previously exported
         strSql = ReadFile(strFileSql)
+
+        'create new query
+        Call CurrentDb.CreateQueryDef(strQueryName, strSql)
+        
+        Set m_Query = CurrentData.AllQueries(strQueryName)
+        VCSIndex.Update Me, eatImport
 
         ' Update query def with saved SQL
         If strSql <> vbNullString Then
@@ -103,9 +162,222 @@ Private Sub IDbComponent_Import(strFile As String)
         Else
             Log.Add "  Couldn't get original SQL query for " & strQueryName
         End If
+        
+        'Add additional Access Query Parameters
+        Dim strJsonFile As String
+        strJsonFile = Left$(strFile, Len(strFile) - 4) & ".json"
+        
+        Call QueryJsonParametersImport(dbs.QueryDefs(strQueryName), strJsonFile)
+        
+        dbs.QueryDefs.Refresh
+        
     End If
     
 End Sub
+
+
+Private Function QueryJsonParametersImport(ByRef qdf As QueryDef, strFile As String) As Boolean
+
+    Dim dTable As Dictionary
+    Dim dItem As Dictionary
+    Dim dbs As DAO.Database
+    Dim tdf As DAO.TableDef
+    Dim strSql As String
+    Dim strConnect As String
+    
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
+    
+    ' Read json file
+    Set dTable = ReadJsonFile(strFile)
+    If Not dTable Is Nothing Then
+    
+        ' Link the table
+        Set dItem = dTable("Items")
+        'Set dbs = CurrentDb
+        'Set tdf = dbs.QueryDefs(dItem("Name"))
+        strConnect = GetFullConnect(dItem("Connect"))
+
+        If strConnect = "" Then Exit Function
+        
+        'With qdf
+        '    .Connect = strConnect
+        '    .SourceTableName = dItem("SourceTableName")
+        '    .Attributes = SafeAttributes(dItem("Attributes"))
+        'End With
+        
+        On Error Resume Next
+         
+        Dim varKey As Variant
+        For Each varKey In dItem.Keys()
+            'Range("A" & varKey).Value = oDic(varKey)
+        
+            Select Case varKey
+            
+            Case _
+                  "Name" _
+                , "Type" _
+                , "Updatable" _
+        
+        
+            Case Else
+        
+                With qdf
+                    .Properties(varKey).Value = dItem(varKey)
+                
+                    If Err.Number = 3270 Then
+                        Err.Clear
+                        .Properties.Append .CreateProperty(CStr(varKey), typeOfProperty(CStr(varKey)), dItem(varKey))
+                        
+                    End If
+                
+                End With
+            
+                Call CatchAny(eelWarning, vbNullString, m_Query.Name & ":" & varKey & ".AddParamaters")
+                'Debug.Print varKey, Err.Number, Err.Description
+'                On Error GoTo 0
+        
+            End Select
+        
+        
+        Next
+
+        On Error GoTo 0
+        'dbs.TableDefs.Append tdf
+'        If Catch(3011) Then
+'            Log.Error eelError, "Could not link table '" & dItem("SourceTableName") & "'", _
+'            ModuleName & ".ImportLinkedTable"
+'            Log.Add "Linked table object not found in " & strFile, False
+'            Log.Add "Connection String: " & strConnect, False
+'        Else
+        If CatchAny(eelError, vbNullString, m_Query.Name & ".AddConnection") Then
+            ' May have encountered other issue like a missing link specification.
+        Else
+            ' Verify that the connection matches the source file. (Issue #192)
+'            If qdf.Connect <> strConnect Then
+'                qdf.Connect = strConnect
+'                df.RefreshLink
+'            End If
+'            dbs.TableDefs.Refresh
+            
+            ' Set index on linked table.
+'            If InStr(1, tdf.Connect, ";DATABASE=", vbTextCompare) = 1 Then
+'                ' Can't create a key on a linked Access database table.
+'                ' Presumably this would use the Access index instead of needing the pseudo index
+'            Else
+'                ' Check for a primary key index (Linked SQL tables may bring over the index, but linked views won't.)
+'                If dItem.Exists("PrimaryKey") And Not HasUniqueIndex(tdf) Then
+'                    ' Create a pseudo index on the linked table
+'                    strSql = "CREATE UNIQUE INDEX __uniqueindex ON [" & tdf.Name & "] (" & dItem("PrimaryKey") & ") WITH PRIMARY"
+'                    dbs.Execute strSql, dbFailOnError
+'                    dbs.TableDefs.Refresh
+'                End If
+'            End If
+        End If
+    End If
+    
+    ' Report any unhandled errors
+    CatchAny eelError, "Error importing " & strFile, ".AddConnection"
+    
+End Function
+
+Function typeOfProperty(propertyName) As Long
+    
+    Select Case propertyName
+    Case _
+          "Updatable" _
+        , "ReturnsRecords" _
+        , "UseTransaction" _
+        , "DatasheetFontItalic" _
+        , "DatasheetFontUnderline" _
+        , "OrderByOn" _
+        , "FilterOnLoad" _
+        , "OrderByOnLoad" _
+        , "TotalsRow" _
+        , "HideNewField" _
+        , "ReadOnlyWhenDisconnected" _
+        , "FailOnError" _
+        , "LogMessages" _
+        , "SubdatasheetExpanded" _
+    
+        typeOfProperty = 1
+    
+    Case _
+          "DatasheetFontName" _
+        , "SubdatasheetName" _
+    
+        typeOfProperty = 10
+    Case _
+          "DOL" _
+        , "NameMap" _
+        
+        typeOfProperty = 11
+    Case _
+          "Name" _
+        , "SQL" _
+        , "Connect" _
+        
+        typeOfProperty = 12
+    Case _
+          "RecordLocks" _
+        , "Orientation" _
+        , "PublishToWeb" _
+        , "TabularCharSet" _
+        , "TabularFamily" _
+        , "RecordsetType" _
+        , "DefaultView" _
+        , "DisplayViewsOnSharePointSite" _
+        
+        typeOfProperty = 2
+    Case _
+          "Type" _
+        , "ODBCTimeout" _
+        , "DatasheetFontHeight" _
+        , "DatasheetFontWeight" _
+        , "SubdatasheetHeight" _
+        
+        typeOfProperty = 3
+    Case _
+          "RecordsAffected" _
+        , "MaxRecords" _
+        , "DatasheetBackColor" _
+        , "DatasheetBackColor12" _
+        , "DatasheetAlternateBackColor" _
+        , "DatasheetForeColor" _
+        , "DatasheetForeColor12" _
+        , "BackThemeColorIndex" _
+        , "BorderThemeColorIndex" _
+        , "ThemeFontIndex" _
+        , "ForeThemeColorIndex" _
+        , "AlternateBackThemeColorIndex" _
+        , "DatasheetGridlinesThemeColorIndex" _
+        , "DatasheetForeThemeColorIndex" _
+        
+        typeOfProperty = 4
+    Case _
+          "BackTint" _
+        , "BackShade" _
+        , "BorderTint" _
+        , "BorderShade" _
+        , "ForeTint" _
+        , "ForeShade" _
+        , "AlternateBackTint" _
+        , "AlternateBackShade" _
+        
+        typeOfProperty = 6
+    Case _
+          "DateCreated" _
+        , "LastUpdated" _
+        
+        typeOfProperty = 8
+    Case _
+        "GUID" _
+    
+        typeOfProperty = 9
+    Case Else
+        typeOfProperty = -1
+    End Select
+
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -163,7 +435,7 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
-    Set IDbComponent_GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder, "*.bas")
+    Set IDbComponent_GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder, "*.sql")
 End Function
 
 
@@ -175,7 +447,7 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Private Sub IDbComponent_ClearOrphanedSourceFiles()
-    ClearOrphanedSourceFiles Me, "bas", "sql"
+    ClearOrphanedSourceFiles Me, "bas", "sql", "json"
 End Sub
 
 
@@ -264,7 +536,8 @@ End Property
 '---------------------------------------------------------------------------------------
 '
 Private Property Get IDbComponent_SourceFile() As String
-    IDbComponent_SourceFile = IDbComponent_BaseFolder & GetSafeFileName(m_Query.Name) & ".bas"
+    IDbComponent_SourceFile = IDbComponent_BaseFolder & GetSafeFileName(m_Query.Name) & ".sql"
+    'IDbComponent_SourceFile = IDbComponent_BaseFolder & GetSafeFileName(m_Query.Name) & ".bas"
 End Property
 
 

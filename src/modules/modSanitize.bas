@@ -224,7 +224,7 @@ Public Sub SanitizeFile(strPath As String)
         "${BlockCount}", m_colBlocks.Count), _
         "${File}", strPath), ModuleName & ".SanitizeFile"
 
-Stop
+'Stop
 
 
 Build_Output:
@@ -311,20 +311,18 @@ Public Sub SanitizeQuery(strPath As String)
         strTLine = Trim$(strLine)
         
         ' Improve performance by reducing comparisons
-        If Len(strTLine) > 3 And blnInsideIgnoredBlock Then
+        If Len(strTLine) < 3 Then
             SkipLine lngLine
-        'ElseIf Len(strTLine) > 60 And StartsWith(strTLine, "0x") Then
-            ' Add binary data line. No need to test this line further.
         Else
             ' Run the rest of the tests
             Select Case strTLine
             
-                ' File version
-                Case "Version =21"
-                    ' Change version down to 20 to allow import into Access 2010.
-                    ' (Haven't seen any significant issues with this.)
-                    varLines(lngLine) = "Version =20"
-                Case Else
+            ' File version
+            Case "Version =21"
+                ' Change version down to 20 to allow import into Access 2010.
+                ' (Haven't seen any significant issues with this.)
+                varLines(lngLine) = "Version =20"
+            Case Else
                 
                 'Stop
                 'Keep only mandatory properties
@@ -343,18 +341,37 @@ Public Sub SanitizeQuery(strPath As String)
                     , "dbBoolean ""OrderByOnLoad""" _
                     , "dbBoolean ""TotalsRow""" _
                     , "dbBoolean ""UseTransaction""" _
-                    , "dbBoolean ""FailOnError"""
+                    , "dbBoolean ""FailOnError""" _
+                    , "dbBoolean ""LogMessages""" _
+                    
                     
                 'Get whole connection string of DSN less connections longer then one line
                 Case "dbMemo ""Connect"""
                     
-                    Stop
+                    
+                    'Stop
                     
                     intIndent = GetIndent(strLine)
                      ' Preview the next line, and check the indent level
                     Do While GetIndent(varLines(lngLine + 1)) > intIndent
                         lngLine = lngLine + 1
                     Loop
+                
+                'Remove Multiline SQL will be kept in sql file
+                Case "dbMemo ""SQL"""
+                    
+                    'to keep solution working left sql empty
+                    varLines(lngLine) = "dbMemo ""SQL"" ="""""
+                    'Stop
+                    
+                    intIndent = GetIndent(strLine)
+                    
+                    'skip all further sql lines
+                    Do While GetIndent(varLines(lngLine + 1)) > intIndent
+                        lngLine = lngLine + 1
+                        SkipLine lngLine
+                    Loop
+                
                 
                 Case Else
                     SkipLine lngLine
@@ -839,6 +856,384 @@ Public Sub SanitizeXML(strPath As String)
     CatchAny eelError, "Error sanitizing XML file " & FSO.GetFileName(strPath), ModuleName & ".SanitizeXML"
 
 End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : SanitizeXML
+' Author    : Adam Waller
+' Date      : 4/29/2021
+' Purpose   : Remove non-essential data that changes every time the file is exported.
+'---------------------------------------------------------------------------------------
+'
+Public Sub SanitizeXML_TableDef(strPath As String)
+
+    Dim curStart As Currency
+    Dim cData As clsConcat
+    Dim strFile As String
+    Dim strText As String
+    Dim strTLine As String
+    Dim strLine As String
+    Dim lngLine As Long
+    Dim rxLine As VBScript_RegExp_55.RegExp
+    Dim objMatches As VBScript_RegExp_55.MatchCollection
+    Dim varLines As Variant
+    
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
+    
+    Set cData = New clsConcat
+    cData.AppendOnAdd = vbCrLf
+    Set rxLine = New VBScript_RegExp_55.RegExp
+
+    ' Read text from file
+    strFile = ReadFile(strPath)
+    Perf.OperationStart "Sanitize XML - TableDef"
+    curStart = Perf.MicroTimer
+    
+    'Stop
+    
+    ' Split into array of lines
+    varLines = Split(FormatXML(strFile), vbCrLf)
+
+    ' Using a do loop since we may adjust the line counter
+    ' during a loop iteration.
+    Do While lngLine <= UBound(varLines)
+    
+        ' Get unmodified and trimmed line
+        strLine = varLines(lngLine)
+        strTLine = TrimTabs(Trim$(strLine))
+        
+        ' Look for specific lines
+        Select Case True
+            
+            ' Discard blank lines
+            Case strTLine = vbNullString
+            
+            ' Remove generated timestamp in header
+            Case StartsWith(strTLine, "<dataroot ")
+                '<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" generated="2020-04-27T10:28:32">
+                '<dataroot generated="2021-04-29T17:27:33" xmlns:od="urn:schemas-microsoft-com:officedata">
+                With rxLine
+                    .Pattern = "( generated="".+?"")"
+                    If .Test(strLine) Then
+                        ' Replace timestamp with empty string.
+                        Set objMatches = .Execute(strLine)
+                        strText = Replace(strLine, objMatches(0).SubMatches(0), vbNullString, , 1)
+                        cData.Add strText
+                    Else
+                        ' Did not contain a timestamp. Keep the whole line
+                        cData.Add strLine
+                    End If
+                End With
+            
+            ' Remove non-critical single lines that are not consistent between systems
+            'Case StartsWith(strTLine, "<od:tableProperty name=""NameMap""")
+            '    If Not Options.AggressiveSanitize Then cData.Add strLine
+            
+            'TBD remove all defaults
+            
+            
+            ' Remove multi-line sections
+            Case StartsWith(strTLine, "<od:tableProperty name=""NameMap"""), _
+                StartsWith(strTLine, "<od:tableProperty name=""GUID"""), _
+                StartsWith(strTLine, "<od:fieldProperty name=""GUID""")
+                If Options.AggressiveSanitize Then
+                    Do While Not EndsWith(strTLine, "/>")
+                        lngLine = lngLine + 1
+                        strTLine = TrimTabs(Trim$(varLines(lngLine)))
+                    Loop
+                Else
+                    ' Keep line and continue
+                    cData.Add strLine
+                End If
+            
+            ' Adding Subdatasheet blank property
+            
+            ' Remove Subdatasheets
+            Case StartsWith(strTLine, "<od:tableProperty name=""ReadOnlyWhenDisconnected""")
+            
+                cData.Add strLine
+                cData.Add Split(Replace(Replace(strLine, "ReadOnlyWhenDisconnected", "SubdatasheetName"), "type=""1""", "type=""10"""), "value=")(0) & "value=""[None]""/>"
+               ' ,<od:tableProperty name="ReadOnlyWhenDisconnected" type="1" value="0"/>
+            
+            ' Clean if linked
+            Case _
+                StartsWith(strTLine, "<od:tableProperty name=""SubdatasheetName""") _
+                , StartsWith(strTLine, "<od:tableProperty name=""LinkChildFields""") _
+                , StartsWith(strTLine, "<od:tableProperty name=""LinkMasterFields""") _
+
+            ' Publish to web sections
+            Case StartsWith(strTLine, "<od:tableProperty name=""PublishToWeb""")
+                If Not Options.StripPublishOption Then cData.Add strLine
+            
+            ' Keep everything else except defaults
+            Case Else
+               
+                Select Case strTLine
+                
+                'ignore table defaults
+                Case _
+                  "<od:tableProperty name=""Orientation"" type=""2"" value=""0""/>" _
+                , "<od:tableProperty name=""OrderByOn"" type=""1"" value=""0""/>" _
+                , "<od:tableProperty name=""DefaultView"" type=""2"" value=""2""/>" _
+                , "<od:tableProperty name=""DisplayViewsOnSharePointSite"" type=""2"" value=""1""/>" _
+                , "<od:tableProperty name=""TotalsRow"" type=""1"" value=""0""/>" _
+                , "<od:tableProperty name=""FilterOnLoad"" type=""1"" value=""0""/>" _
+                , "<od:tableProperty name=""OrderByOnLoad"" type=""1"" value=""1""/>" _
+                , "<od:tableProperty name=""HideNewField"" type=""1"" value=""0""/>" _
+                , "<od:tableProperty name=""BackTint"" type=""6"" value=""100""/>" _
+                , "<od:tableProperty name=""BackShade"" type=""6"" value=""100""/>" _
+                , "<od:tableProperty name=""ThemeFontIndex"" type=""4"" value=""1""/>" _
+                , "<od:tableProperty name=""AlternateBackThemeColorIndex"" type=""4"" value=""1""/>" _
+                , "<od:tableProperty name=""AlternateBackTint"" type=""6"" value=""100""/>" _
+                , "<od:tableProperty name=""AlternateBackShade"" type=""6"" value=""95""/>" _
+                , "<od:tableProperty name=""DatasheetGridlinesThemeColorIndex"" type=""4"" value=""3""/>" _
+                , "<od:tableProperty name=""DatasheetForeThemeColorIndex"" type=""4"" value=""0""/>" _
+
+'                <od:tableProperty name="ReadOnlyWhenDisconnected" type="1" value="0"/>
+
+                'ignore field defaults
+                Case _
+                  "<od:fieldProperty name=""ColumnWidth"" type=""3"" value=""-1""/>" _
+                , "<od:fieldProperty name=""OrderByOn"" type=""1"" value=""0""/>" _
+                , "<od:fieldProperty name=""TotalsRow"" type=""1"" value=""0""/>" _
+                , "<od:fieldProperty name=""ColumnHidden"" type=""1"" value=""0""/>" _
+                , "<od:fieldProperty name=""TextAlign"" type=""2"" value=""0""/>" _
+                , "<od:fieldProperty name=""AggregateType"" type=""4"" value=""-1""/>" _
+                , "<od:fieldProperty name=""ResultType"" type=""2"" value=""0""/>" _
+                , "<od:fieldProperty name=""ColumnOrder"" type=""3"" value=""0""/>" _
+                , "<od:fieldProperty name=""DisplayControl"" type=""3"" value=""109""/>" _
+                , "<od:fieldProperty name=""IMEMode"" type=""2"" value=""0""/>" _
+                , "<od:fieldProperty name=""IMESentenceMode"" type=""2"" value=""3""/>" _
+                , "<od:fieldProperty name=""CurrencyLCID"" type=""4"" value=""0""/>" _
+                , "<od:fieldProperty name=""ShowDatePicker"" type=""3"" value=""1""/>" _
+
+                
+                ' , "<od:fieldProperty name=""Required"" type=""1"" value=""0""/>" _
+                ' , "<od:fieldProperty name=""AllowZeroLength"" type=""1"" value=""1""/>" _
+                ' , "<od:fieldProperty name=""UnicodeCompression"" type=""1"" value=""1""/>" _
+
+
+                Case Else
+                    cData.Add strLine
+                End Select
+            
+        End Select
+        
+        ' Move to next line
+        lngLine = lngLine + 1
+    Loop
+    
+    Perf.OperationEnd
+    
+    ' Write out sanitized XML file
+    WriteFile cData.GetStr, strPath
+
+    ' Show stats if debug turned on.
+    Log.Add "    Sanitized in " & Format$(Perf.MicroTimer - curStart, "0.000") & " seconds.", Options.ShowDebug
+
+    ' Log any errors
+    CatchAny eelError, "Error sanitizing XML file " & FSO.GetFileName(strPath), ModuleName & ".SanitizeXML - TableDef"
+
+End Sub
+
+'---------------------------------------------------------------------------------------
+' Procedure : SanitizeXML_TableData
+' Author    : Adam Waller
+' Date      : 4/29/2021
+' Purpose   : Remove non-essential data that changes every time the file is exported.
+'---------------------------------------------------------------------------------------
+'
+
+Public Sub SanitizeXML_TableData(strPath As String)
+
+    Dim strFile As String
+    Dim strSanitized As String
+    Dim curStart As Currency
+     
+    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
+    
+    
+    ' Read text from file
+    strFile = ReadFile(strPath)
+    Perf.OperationStart "Sanitize XML - TableData"
+    curStart = Perf.MicroTimer
+    
+    'Call worker function
+    strSanitized = pSanitizeXML_TableData(strFile)
+    
+    Perf.OperationEnd
+    
+    ' Write out sanitized XML file
+    WriteFile strSanitized, strPath
+
+    ' Show stats if debug turned on.
+    Log.Add "    Sanitized in " & Format$(Perf.MicroTimer - curStart, "0.000") & " seconds.", Options.ShowDebug
+
+    ' Log any errors
+    CatchAny eelError, "Error sanitizing XML file " & FSO.GetFileName(strPath), ModuleName & ".SanitizeXML - TableData"
+
+
+
+End Sub
+
+
+Private Function pSanitizeXML_TableData_TEST()
+
+    Const testString1 As String = "<?y?>|<a>|<b></b>|<c></c>|<ce>|<e></e>|<u/>|</ce>|</a>"
+    
+    Const testString2 As String = "<?y?>|<a>|<b></b>|<c></c>|<ce>|<e></e>|</ce>|</a>"
+
+    Debug.Print pSanitizeXML_TableData(Replace(testString1, "|", vbCrLf))
+    Debug.Print pSanitizeXML_TableData(Replace(testString2, "|", vbCrLf))
+
+End Function
+
+
+Private Function pSanitizeXML_TableData(strFile As String) As String
+
+'    Dim curStart As Currency
+    Dim cData As clsConcat
+    'Dim strFile As String
+    Dim strText As String
+    Dim strTLine As String
+    Dim strLine As String
+    Dim lngLine As Long
+    Dim rxLine As VBScript_RegExp_55.RegExp
+    Dim objMatches As VBScript_RegExp_55.MatchCollection
+    Dim varLines As Variant
+'
+'    If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
+'
+    Set cData = New clsConcat
+    cData.AppendOnAdd = vbCrLf
+    Set rxLine = New VBScript_RegExp_55.RegExp
+'
+'    ' Read text from file
+'    'strFile = ReadFile(strPath)
+'    Perf.OperationStart "Sanitize XML - TableData"
+'    curStart = Perf.MicroTimer
+'
+    'Stop
+    
+    ' Split into array of lines
+    'varLines = Split(FormatXML(strFile), vbCrLf)
+    
+    varLines = Split(strFile, vbCrLf)
+    
+    Dim lngCurIndent As Long
+    Dim lngNextIndent As Long
+    Dim strIndent As String
+    
+    lngCurIndent = 0
+    lngNextIndent = 0
+    strIndent = vbTab
+    
+    
+    ' Using a do loop since we may adjust the line counter
+    ' during a loop iteration.
+    Do While lngLine <= UBound(varLines)
+    
+        ' Get unmodified and trimmed line
+        strLine = varLines(lngLine)
+        strTLine = TrimTabs(Trim$(strLine))
+        
+        'INDENTATION
+        lngCurIndent = lngNextIndent
+        
+        Select Case InStr(1, strTLine, "</")
+       
+        'not end tag but => start with "<" openning
+        Case 0
+        
+            'start tag
+            If Left(strTLine, 1) = "<" And Right(strTLine, 2) <> "/>" And Left(strTLine, 2) <> "<?" Then
+                
+                'If Right(strTLine, 1) = "/>" Then
+                lngNextIndent = lngCurIndent + 1
+            Else
+                lngNextIndent = lngCurIndent
+            End If
+            
+         'endtag inside
+        'Case Is > 1
+            'lngIndent = 0
+            
+        'end tag on close
+        Case 1
+             lngCurIndent = lngCurIndent - 1
+             lngNextIndent = lngCurIndent
+        End Select
+        
+        
+        
+        ' Look for specific lines
+        Select Case True
+            
+            ' Discard blank lines
+            Case strTLine = vbNullString
+            
+            ' Remove generated timestamp in header
+            Case StartsWith(strTLine, "<dataroot ")
+                '<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" generated="2020-04-27T10:28:32">
+                '<dataroot generated="2021-04-29T17:27:33" xmlns:od="urn:schemas-microsoft-com:officedata">
+                With rxLine
+                    .Pattern = "( generated="".+?"")"
+                    If .Test(strLine) Then
+                        ' Replace timestamp with empty string.
+                        Set objMatches = .Execute(strLine)
+                        strText = Replace(strLine, objMatches(0).SubMatches(0), vbNullString, , 1)
+                        cData.Add String(lngCurIndent, strIndent) & strText
+                    Else
+                        ' Did not contain a timestamp. Keep the whole line
+                        cData.Add String(lngCurIndent, strIndent) & strTLine
+                    End If
+                End With
+            
+            ' Remove non-critical single lines that are not consistent between systems
+            'Case StartsWith(strTLine, "<od:tableProperty name=""NameMap""")
+            '    If Not Options.AggressiveSanitize Then cData.Add strLine
+                
+'            ' Remove multi-line sections
+'            Case StartsWith(strTLine, "<od:tableProperty name=""NameMap"""), _
+'                StartsWith(strTLine, "<od:tableProperty name=""GUID"""), _
+'                StartsWith(strTLine, "<od:fieldProperty name=""GUID""")
+'                If Options.AggressiveSanitize Then
+'                    Do While Not EndsWith(strTLine, "/>")
+'                        lngLine = lngLine + 1
+'                        strTLine = TrimTabs(Trim$(varLines(lngLine)))
+'                    Loop
+'                Else
+'                    ' Keep line and continue
+'                    cData.Add strLine
+'                End If
+'
+'            ' Publish to web sections
+'            Case StartsWith(strTLine, "<od:tableProperty name=""PublishToWeb""")
+'                If Not Options.StripPublishOption Then cData.Add strLine
+
+            ' Keep everything else
+            Case Else
+                cData.Add String(lngCurIndent, strIndent) & strTLine
+            
+        End Select
+        
+        ' Move to next line
+        lngLine = lngLine + 1
+    Loop
+    
+    pSanitizeXML_TableData = cData.GetStr
+
+'    Perf.OperationEnd
+'
+'    ' Write out sanitized XML file
+'    WriteFile cData.GetStr, strPath
+'
+'    ' Show stats if debug turned on.
+'    Log.Add "    Sanitized in " & Format$(Perf.MicroTimer - curStart, "0.000") & " seconds.", Options.ShowDebug
+'
+'    ' Log any errors
+'    CatchAny eelError, "Error sanitizing XML file " & FSO.GetFileName(strPath), ModuleName & ".SanitizeXML - TableData"
+
+End Function
 
 
 '---------------------------------------------------------------------------------------

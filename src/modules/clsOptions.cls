@@ -78,7 +78,7 @@ Public Sub LoadDefaults()
         .SavePrintVars = True
         .SaveQuerySQL = True
         .ForceImportOriginalQuerySQL = False
-        .SaveTableSQL = True
+        .SaveTableSQL = False 'duplication with xml, could be usefull if access is backend
         .StripPublishOption = True
         .SanitizeLevel = eslAggressive
         .SanitizeColors = eslBasic

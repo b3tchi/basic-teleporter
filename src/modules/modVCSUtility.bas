@@ -178,12 +178,14 @@ Public Sub SaveComponentAsText(intType As AcObjectType, _
     
         Case acQuery
             If FSO.FileExists(strFile) Then DeleteFile strFile
-            Stop
+            'Stop
+            'TODO
             If Options.SanitizeQuery Then
                 SanitizeQuery strTempFile
             Else
                 SanitizeFile strTempFile
             End If
+            
             FSO.MoveFile strTempFile, strFile
     
         Case acMacro
@@ -365,7 +367,7 @@ Public Function GetOriginalDbFullPathFromSource(strFolder As String) As String
         GetOriginalDbFullPathFromSource = vbNullString
     Else
     
-        Stop
+        'Stop
         ' Look up file name from VBE project file name
         Set dContents = ReadJsonFile(strPath)
         strFile = dNZ(dContents, "Items\FileName")
