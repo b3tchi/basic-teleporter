@@ -61,8 +61,9 @@ Private Sub IDbComponent_Export()
         Perf.OperationEnd
         
         ' Rewrite sanitized XML as formatted UTF-8 content
-        SanitizeXML strFile
-    
+        'SanitizeXML strFile
+        SanitizeXML_TableDef strFile
+        
     Else
         ' Linked table - Save as JSON
         Set dItem = New Dictionary

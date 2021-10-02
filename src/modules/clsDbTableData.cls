@@ -56,7 +56,8 @@ Private Sub IDbComponent_Export()
                     Perf.OperationStart "App.ExportXML()"
                     Application.ExportXML acExportTable, m_Table.Name, strFile
                     Perf.OperationEnd
-                    SanitizeXML strFile
+                    'SanitizeXML strFile
+                    SanitizeXML_TableData strFile
             End Select
         End If
     Next intFormat

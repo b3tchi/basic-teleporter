@@ -1,6 +1,7 @@
 # Write-Information 'lib loaded' -InformationAction Continue
 
 $workerPath="$PSScriptRoot\Version Control.accda"
+
 # $workerPath=sitories\AccessVCS\Version Control_Test.accda"
 Write-Information "lib loaded $workerPath" -InformationAction Continue
 
@@ -365,8 +366,9 @@ function export {
     # $appfile.Name
     Write-Information "app file $appfile" -InformationAction Continue
     Write-Information "app path $appPath" -InformationAction Continue
+    Write-Information "worker path $workerPath" -InformationAction Continue
     Write-Information "source dir  $sourceDir" -InformationAction Continue
-    Write-Information "export $doFullExport" -InformationAction Continue
+    Write-Information "full export $doFullExport" -InformationAction Continue
 
     $app = CreateAccess
     $app.Visible = $true
@@ -404,7 +406,10 @@ function export {
 }
 function build(
   $sourceDir
+  ,[Nullable[boolean]]$devWorker
   ){
+
+  if ([string]::IsNullOrEmpty($devWorker)) {$devWorker = $false}
 
   [string]$sourceDir = (Get-Item $sourceDir).FullName
 
@@ -440,7 +445,27 @@ function build(
 
   $app.NewCurrentDatabase($buildFile)
 
-  $ref = $app.References.AddFromFile($workerPath)
+  #rename worker
+  if($devWorker -eq $true){
+
+    $workerName = (Get-Item $workerPath).Name
+    $workerDir = Split-Path -Path $workerPath
+
+    $workerTempPath = Join-Path -Path $workerDir -ChildPath "Temp_$workerName"
+
+    if(Test-Path -Path $workerTempPath -PathType Leaf){
+      Remove-Item $workerTempPath
+    }
+
+    Copy-Item $workerPath -Destination $workerTempPath
+
+    $workerFinalPath = $workerTempPath
+
+  }else{
+    $workerFinalPath = $workerPath
+  }
+
+  $ref = $app.References.AddFromFile($workerFinalPath)
 
   #run build
   $app.Run("Build_Cli",[ref]$sourceDir,[ref]$true)
@@ -473,6 +498,13 @@ function build(
 
   #rename build as target file
   Rename-Item $buildFile $targetName
+
+  #cleanup if worker path if devworker
+  if($devWorker -eq $true){
+    if(Test-Path -Path $workerTempPath -PathType Leaf){
+      Remove-Item $workerTempPath
+    }
+  }
 
 }
 
