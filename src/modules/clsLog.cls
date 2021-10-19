@@ -174,30 +174,51 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
         Case eelWarning:    strPrefix = "WARNING: "
         Case eelError:      strPrefix = "ERROR: "
         Case eelCritical:   strPrefix = "CRITICAL: "
+        Case eelError2:   strPrefix = "EE: "
     End Select
     
     ' Build the error message string.
     With New clsConcat
     
-        ' Sometimes the error description is sufficient for the description
-        If strDescription = vbNullString And Err.Number <> 0 Then
-            strDisplay = strPrefix & Err.Description
-        Else
-            strDisplay = strPrefix & strDescription
-        End If
+        Select Case eLevel
         
-        ' Display on the output screen anything higher than a warning
-        If eLevel > eelWarning Then
-            Me.Add vbNullString
-            Me.Spacer
-            Me.Add strDisplay, , , "red"
-            Me.Spacer
-        End If
+        Case eelError2
         
-        ' Log the full detail to the log file
-        If Err Then .Add "Error ", Err.Number, ": ", Err.Description, " "
-        If strSource <> vbNullString Then .Add "Source: ", strSource
-        Me.Add .GetStr, False
+            If Err Then
+                .Add strPrefix, strDescription, " - ", Err.Number, ": ", Err.Description, " "
+            Else
+                .Add strPrefix, strDescription
+            End If
+            
+            Me.Add .GetStr, False
+        
+            eLevel = eelError
+        
+        Case Else
+    
+            ' Sometimes the error description is sufficient for the description
+            If strDescription = vbNullString And Err.Number <> 0 Then
+                strDisplay = strPrefix & Err.Description
+            Else
+                strDisplay = strPrefix & strDescription
+            End If
+            
+            ' Display on the output screen anything higher than a warning
+            If eLevel > eelWarning Then
+                Me.Add vbNullString
+                Me.Spacer
+                Me.Add strDisplay, , , "red"
+                Me.Spacer
+            End If
+            
+            ' Log the full detail to the log file
+            If Err Then .Add "Error ", Err.Number, ": ", Err.Description, " "
+            If strSource <> vbNullString Then .Add "Source: ", strSource
+            
+            
+            Me.Add .GetStr, False
+        
+        End Select
         
         ' See if we are actively logging an operation
         If Log.Active Then
@@ -215,6 +236,9 @@ Public Sub Error(eLevel As eErrorLevel, strDescription As String, Optional strSo
                 Case eelCritical:   MsgBox2 "Critical", strDisplay, .GetStr, vbCritical
             End Select
         End If
+        
+        
+        
     End With
     
     ' Update error level if higher.
