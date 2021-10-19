@@ -36,7 +36,7 @@ Implements IDbComponent
 '---------------------------------------------------------------------------------------
 '
 Private Sub IDbComponent_Export()
-    
+        
     Dim strFile As String
     Dim dbs As DAO.Database
 
@@ -95,8 +95,6 @@ Private Function QueryJsonParametersExport(ByRef qdf As QueryDef) As Boolean
     End With
     
     On Error GoTo 0
-    
-
     
     ' Write export file.
     Dim strFile As String
@@ -167,6 +165,8 @@ Private Sub IDbComponent_Import(strFile As String)
         Dim strJsonFile As String
         strJsonFile = Left$(strFile, Len(strFile) - 4) & ".json"
         
+        'Stop
+        
         Call QueryJsonParametersImport(dbs.QueryDefs(strQueryName), strJsonFile)
         
         dbs.QueryDefs.Refresh
@@ -195,9 +195,9 @@ Private Function QueryJsonParametersImport(ByRef qdf As QueryDef, strFile As Str
         Set dItem = dTable("Items")
         'Set dbs = CurrentDb
         'Set tdf = dbs.QueryDefs(dItem("Name"))
-        strConnect = GetFullConnect(dItem("Connect"))
+        'strConnect = GetFullConnect(dItem("Connect"))
 
-        If strConnect = "" Then Exit Function
+        'If strConnect = "" Then Exit Function
         
         'With qdf
         '    .Connect = strConnect
@@ -207,9 +207,14 @@ Private Function QueryJsonParametersImport(ByRef qdf As QueryDef, strFile As Str
         
         On Error Resume Next
          
+        
+       
+         
         Dim varKey As Variant
-        For Each varKey In dItem.Keys()
+        For Each varKey In dItem '.Keys()
             'Range("A" & varKey).Value = oDic(varKey)
+        
+            'Debug.Assert varKey <> "UseTransaction"
         
             Select Case varKey
             
@@ -217,9 +222,11 @@ Private Function QueryJsonParametersImport(ByRef qdf As QueryDef, strFile As Str
                   "Name" _
                 , "Type" _
                 , "Updatable" _
-        
+           
         
             Case Else
+            
+              
         
                 With qdf
                     .Properties(varKey).Value = dItem(varKey)
@@ -232,7 +239,10 @@ Private Function QueryJsonParametersImport(ByRef qdf As QueryDef, strFile As Str
                 
                 End With
             
-                Call CatchAny(eelWarning, vbNullString, m_Query.Name & ":" & varKey & ".AddParamaters")
+            
+                Call CatchAny(eelError2, "Import QueryDef - " & dTable("Name") & " - Set Property " & varKey, , True, True)
+            
+                'Call CatchAny(eelWarning, vbNullString, m_Query.Name & ":" & varKey & ".AddParamaters")
                 'Debug.Print varKey, Err.Number, Err.Description
 '                On Error GoTo 0
         
@@ -249,38 +259,38 @@ Private Function QueryJsonParametersImport(ByRef qdf As QueryDef, strFile As Str
 '            Log.Add "Linked table object not found in " & strFile, False
 '            Log.Add "Connection String: " & strConnect, False
 '        Else
-        If CatchAny(eelError, vbNullString, m_Query.Name & ".AddConnection") Then
-            ' May have encountered other issue like a missing link specification.
-        Else
-            ' Verify that the connection matches the source file. (Issue #192)
-'            If qdf.Connect <> strConnect Then
-'                qdf.Connect = strConnect
-'                df.RefreshLink
-'            End If
-'            dbs.TableDefs.Refresh
-            
-            ' Set index on linked table.
-'            If InStr(1, tdf.Connect, ";DATABASE=", vbTextCompare) = 1 Then
-'                ' Can't create a key on a linked Access database table.
-'                ' Presumably this would use the Access index instead of needing the pseudo index
-'            Else
-'                ' Check for a primary key index (Linked SQL tables may bring over the index, but linked views won't.)
-'                If dItem.Exists("PrimaryKey") And Not HasUniqueIndex(tdf) Then
-'                    ' Create a pseudo index on the linked table
-'                    strSql = "CREATE UNIQUE INDEX __uniqueindex ON [" & tdf.Name & "] (" & dItem("PrimaryKey") & ") WITH PRIMARY"
-'                    dbs.Execute strSql, dbFailOnError
-'                    dbs.TableDefs.Refresh
-'                End If
-'            End If
-        End If
+'        If CatchAny(eelError, vbNullString, m_Query.Name & ".AddConnection") Then
+'            ' May have encountered other issue like a missing link specification.
+'        Else
+'            ' Verify that the connection matches the source file. (Issue #192)
+''            If qdf.Connect <> strConnect Then
+''                qdf.Connect = strConnect
+''                df.RefreshLink
+''            End If
+''            dbs.TableDefs.Refresh
+'
+'            ' Set index on linked table.
+''            If InStr(1, tdf.Connect, ";DATABASE=", vbTextCompare) = 1 Then
+''                ' Can't create a key on a linked Access database table.
+''                ' Presumably this would use the Access index instead of needing the pseudo index
+''            Else
+''                ' Check for a primary key index (Linked SQL tables may bring over the index, but linked views won't.)
+''                If dItem.Exists("PrimaryKey") And Not HasUniqueIndex(tdf) Then
+''                    ' Create a pseudo index on the linked table
+''                    strSql = "CREATE UNIQUE INDEX __uniqueindex ON [" & tdf.Name & "] (" & dItem("PrimaryKey") & ") WITH PRIMARY"
+''                    dbs.Execute strSql, dbFailOnError
+''                    dbs.TableDefs.Refresh
+''                End If
+''            End If
+'        End If
     End If
     
     ' Report any unhandled errors
-    CatchAny eelError, "Error importing " & strFile, ".AddConnection"
+'    CatchAny eelError, "Error importing " & strFile, ".AddConnection"
     
 End Function
 
-Function typeOfProperty(propertyName) As Long
+Private Function typeOfProperty(propertyName) As Long
     
     Select Case propertyName
     Case _
