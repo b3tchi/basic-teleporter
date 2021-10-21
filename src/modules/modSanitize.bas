@@ -1045,7 +1045,7 @@ End Sub
 
 Public Sub SanitizeXML_TableData(strPath As String)
 
-    Dim strFile As String
+    Dim fileContent As String
     Dim strSanitized As String
     Dim curStart As Currency
      
@@ -1053,12 +1053,15 @@ Public Sub SanitizeXML_TableData(strPath As String)
     
     
     ' Read text from file
-    strFile = ReadFile(strPath)
+    fileContent = ReadFile(strPath)
     Perf.OperationStart "Sanitize XML - TableData"
     curStart = Perf.MicroTimer
     
+    'GetFileName
+    Dim fileName As String
+    fileName = Mid(strPath, InStrRev(strPath, "\") + 1)
     'Call worker function
-    strSanitized = pSanitizeXML_TableData(strFile)
+    strSanitized = pSanitizeXML_TableData(fileContent, fileName)
     
     Perf.OperationEnd
     
@@ -1076,10 +1079,9 @@ Public Sub SanitizeXML_TableData(strPath As String)
 End Sub
 
 
-Private Function pSanitizeXML_TableData_TEST()
+Private Function pSanitizeXML_TableData_TEST01()
 
     Const testString1 As String = "<?y?>|<a>|<b></b>|<c></c>|<ce>|<e></e>|<u/>|</ce>|</a>"
-    
     Const testString2 As String = "<?y?>|<a>|<b></b>|<c></c>|<ce>|<e></e>|</ce>|</a>"
 
     Debug.Print pSanitizeXML_TableData(Replace(testString1, "|", vbCrLf))
@@ -1087,8 +1089,21 @@ Private Function pSanitizeXML_TableData_TEST()
 
 End Function
 
+Private Function pSanitizeXML_TableData_TEST02()
 
-Private Function pSanitizeXML_TableData(strFile As String) As String
+    Const testString1 As String = "<dataroot />"
+    Const testString2 As String = "<dataroot >|<a/>|</dataroot>"
+
+    Debug.Print pSanitizeXML_TableData(Replace(testString1, "|", vbCrLf), "tabledef.xml")
+    Debug.Print pSanitizeXML_TableData(Replace(testString2, "|", vbCrLf), "tabledef.xml")
+
+End Function
+
+
+Private Function pSanitizeXML_TableData( _
+    strFile As String _
+    , Optional strTableDef As String = "" _
+    ) As String
 
 '    Dim curStart As Currency
     Dim cData As clsConcat
@@ -1175,18 +1190,51 @@ Private Function pSanitizeXML_TableData(strFile As String) As String
             Case StartsWith(strTLine, "<dataroot ")
                 '<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" generated="2020-04-27T10:28:32">
                 '<dataroot generated="2021-04-29T17:27:33" xmlns:od="urn:schemas-microsoft-com:officedata">
+                
+                Dim headerline As String
+                
+                headerline = ""
+                
                 With rxLine
                     .Pattern = "( generated="".+?"")"
                     If .Test(strLine) Then
                         ' Replace timestamp with empty string.
                         Set objMatches = .Execute(strLine)
                         strText = Replace(strLine, objMatches(0).SubMatches(0), vbNullString, , 1)
-                        cData.Add String(lngCurIndent, strIndent) & strText
+                        headerline = strText
                     Else
                         ' Did not contain a timestamp. Keep the whole line
-                        cData.Add String(lngCurIndent, strIndent) & strTLine
+                        headerline = strTLine
                     End If
                 End With
+                
+                'Stop
+                
+                Dim headerarg1 As String
+                headerarg1 = "xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"""
+               
+                'adding general schema
+                If InStr(1, headerline, headerarg1) = 0 Then
+                    headerline = Replace(headerline, "<dataroot ", "<dataroot " & headerarg1 & " ")
+                End If
+            
+                'adding link on tabledef
+                If strTableDef <> "" Then
+                
+                    Dim headerarg2 As String
+                    Dim tagClosing As String
+               
+                    headerarg2 = "xsi:noNamespaceSchemaLocation=""../tbldefs/" & strTableDef & """"
+                    
+                    If InStr(1, headerline, "/>") = 0 Then tagClosing = ">" Else tagClosing = "/>"
+                    
+                    headerline = Replace(headerline, tagClosing, " " & headerarg2 & tagClosing)
+                
+                End If
+            
+                cData.Add String(lngCurIndent, strIndent) & headerline
+            
+            
             
             ' Remove non-critical single lines that are not consistent between systems
             'Case StartsWith(strTLine, "<od:tableProperty name=""NameMap""")

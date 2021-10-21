@@ -545,13 +545,20 @@ End Function
 ' Purpose   : Generic error handler with logging.
 '---------------------------------------------------------------------------------------
 '
-Public Function CatchAny(eLevel As eErrorLevel, strDescription As String, Optional strSource As String, _
-    Optional blnLogError As Boolean = True, Optional blnClearError As Boolean = True) As Boolean
+Public Function CatchAny( _
+    eLevel As eErrorLevel _
+    , strDescription As String _
+    , Optional strSource As String _
+    , Optional blnLogError As Boolean = True _
+    , Optional blnClearError As Boolean = True _
+    ) As Boolean
+    
     If Err Then
         If blnLogError Then Log.Error eLevel, strDescription, strSource
         If blnClearError Then Err.Clear
         CatchAny = True
     End If
+    
 End Function
 
 
@@ -602,12 +609,20 @@ Public Function ZNDate(varValue As Variant) As Variant
     Dim blnDateValue As Boolean
     If IsDate(varValue) Then blnDateValue = (CDate(varValue) <> 0)
     If blnDateValue Then
-        ZNDate = varValue
+        ZNDate = FormatIsoDate(varValue)
     Else
         ZNDate = Null
     End If
 End Function
 
+
+Public Function FormatIsoDate( _
+    ByVal dte As Date _
+    ) As String
+
+    FormatIsoDate = Format(dte, "yyyy-mm-dd hh:nn:ss")
+
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : PathSep
@@ -616,7 +631,7 @@ End Function
 ' Purpose   : Return the current path separator, based on language settings.
 '           : Caches value to avoid extra calls to FSO object.
 '---------------------------------------------------------------------------------------
-'
+
 Public Function PathSep() As String
     Static strSeparator As String
     If strSeparator = vbNullString Then strSeparator = Mid$(FSO.BuildPath("a", "b"), 2, 1)

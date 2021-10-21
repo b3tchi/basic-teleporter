@@ -75,7 +75,11 @@ Public Sub LoadFromFile(Optional strFile As String)
                             Set m_dIndex(varKey) = dItem
                         Else
                             ' Set property by name
-                            CallByName Me, CStr(varKey), VbLet, Nz(dFile("Items")(varKey), 0)
+                            If Right(varKey, 4) = "Date" Then
+                                CallByName Me, CStr(varKey), VbLet, CDate(Nz(dFile("Items")(varKey), 0))
+                            Else
+                                CallByName Me, CStr(varKey), VbLet, Nz(dFile("Items")(varKey), 0)
+                            End If
                         End If
                     End If
                 Next varKey
@@ -100,6 +104,8 @@ Public Sub Save(Optional strInFolder As String)
     Dim varValue As Variant
     Dim dComponents As Dictionary
     Dim strFile As String
+    
+    'Stop
     
     ' Load dictionary from properties
     For Each varKey In m_dIndex.Keys
@@ -165,12 +171,13 @@ Public Function Update(cItem As IDbComponent, intAction As eIndexActionType, _
         ' Add timestamp, defaulting to now
         If dteDateTime = 0 Then dteDateTime = Now
         Select Case intAction
-            Case eatExport: .Item("ExportDate") = CStr(dteDateTime)
-            Case eatImport: .Item("ImportDate") = CStr(dteDateTime)
+            Case eatExport: .Item("ExportDate") = FormatIsoDate(dteDateTime)
+            Case eatImport: .Item("ImportDate") = FormatIsoDate(dteDateTime)
         End Select
         
         ' Save timestamp of exported source file.
         dteDateTime = GetLastModifiedDate(cItem.SourceFile)
+        'Stop
         .Item("SourceModified") = ZNDate(CStr(dteDateTime))
         
         ' Save hash of file properties
