@@ -323,7 +323,7 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Function SelectionInActiveProject() As Boolean
-    SelectionInActiveProject = (Application.VBE.ActiveVBProject.FileName = GetUncPath(CurrentProject.FullName))
+    SelectionInActiveProject = (Application.VBE.ActiveVBProject.fileName = GetUncPath(CurrentProject.FullName))
 End Function
 
 
@@ -370,10 +370,10 @@ Private Function GetProjectByName(ByVal strPath As String) As VBProject
     ' VBProject filenames are UNC paths
     strUncPath = GetUncPath(strPath)
     
-    If VBE.ActiveVBProject.FileName <> strUncPath Then
+    If VBE.ActiveVBProject.fileName <> strUncPath Then
         ' Search for project with matching filename.
         For Each objProj In VBE.VBProjects
-            If objProj.FileName = strUncPath Then
+            If objProj.fileName = strUncPath Then
                 Set GetProjectByName = objProj
                 Exit For
             End If
@@ -536,3 +536,274 @@ Public Function VerifyFocus(ctlWithFocus As Control) As Boolean
     
 End Function
 
+Public Function ListAllPropertiesJsonInObject( _
+    ByRef aobj As Variant _
+    , Optional ByRef proplist As Dictionary _
+    , Optional ByRef onlylisted As Boolean = False _
+    ) As Dictionary
+
+    Dim haveproplist As Boolean
+
+    'initiate dictionery if not set
+    haveproplist = Not proplist Is Nothing
+    
+    Dim oFields()
+    
+    If haveproplist Then
+        ReDim oFields(1 To proplist.Count)
+    Else
+        Set proplist = New Dictionary
+    End If
+
+    'Table Fields
+    Dim uFields()
+    ReDim uFields(1, 1 To aobj.Properties.Count)
+    
+    Dim ucounter
+    ucounter = 0
+
+    Dim propposition As Long
+    Dim var_Value As Variant
+
+    'two lookup system by proplist and by obj propreties
+    If onlylisted Then
+        Dim key
+        
+        For Each key In proplist.Keys
+    
+           propposition = proplist(key)
+           
+           If propposition > 0 Then
+               
+                On Error Resume Next
+                
+                var_Value = aobj.Properties(key).Value
+                
+                If Err.Number = 0 Then
+                    oFields(propposition) = var_Value
+                Else
+                    Err.Clear
+                End If
+               
+                On Error GoTo 0
+    
+            End If
+    
+    
+        Next
+
+    Else
+
+       Dim prp As Property
+
+       For Each prp In aobj.Properties
+           
+          ' Debug.Assert prp.Name <> "Format"
+           
+           If proplist.Exists(prp.Name) Then
+               propposition = proplist(prp.Name)
+           Else
+               propposition = -2
+           End If
+           
+           If propposition <> -1 Then
+               
+               On Error Resume Next
+               
+               var_Value = prp.Value
+               
+               If Err.Number = 0 Then
+               
+                   If propposition = -2 Then
+                       ucounter = ucounter + 1
+                       uFields(0, ucounter) = prp.Name
+                       uFields(1, ucounter) = var_Value
+                   Else
+                       oFields(propposition) = var_Value
+                   End If
+               
+               Else
+                   Err.Clear
+               End If
+               
+               On Error GoTo 0
+           
+           End If
+    
+       Next
+    
+    End If
+    
+   
+    Dim rdct As Dictionary
+    
+    Set rdct = New Dictionary
+    
+    'sOfields = ""
+    If haveproplist Then
+       
+        For Each key In proplist.Keys
+        
+            On Error Resume Next
+            rdct.Add key, oFields(proplist(key))
+            On Error GoTo 0
+        
+        Next
+       
+       ' sOfields = Join(oFields, "")
+    End If
+    
+    If Not onlylisted Then
+    
+        If ucounter > 0 Then
+        
+            ReDim Preserve uFields(1, 1 To ucounter)
+        
+            Dim i As Long
+        
+        
+            For i = 1 To UBound(uFields, 2)
+            
+                rdct.Add uFields(0, i), uFields(1, i)
+            
+            Next
+            
+        End If
+    
+        'sUfields = Join(uFields, "")
+    End If
+    
+    
+    Set ListAllPropertiesJsonInObject = rdct
+    
+End Function
+
+Public Function FieldPropList( _
+    Optional ByVal fldType As DataTypeEnum _
+    , Optional ByVal linked As Integer = 0 _
+    ) As Dictionary
+    
+    Dim proplist As Dictionary
+    Set proplist = New Dictionary
+
+    With proplist
+
+        'Skip properties
+        .Add "GUID", -1
+        .Add "IMEMode", -1
+        .Add "IMESentenceMode", -1
+        .Add "ColumnWidth", -1
+        .Add "ColumnOrder", -1
+        .Add "ColumnHidden", -1
+        .Add "SourceField", -1
+        .Add "SourceTable", -1
+        .Add "CollatingOrder", -1
+        .Add "OrdinalPosition", -1
+       
+        .Add "DataUpdatable", -1 'not relevant for table data
+        .Add "Name", -1
+        .Add "Type", -1
+        
+        .Add "Attributes", -1 'commented not needed when XML all info there
+        
+        'Listed Properties
+        .Add "Caption", .Count + 1
+        .Add "Description", .Count + 1
+        .Add "Size", .Count + 1
+        .Add "DefaultValue", .Count + 1
+        .Add "Required", .Count + 1
+        .Add "AllowZeroLength", .Count + 1
+        .Add "ValidationRule", .Count + 1
+        .Add "ValidationText", .Count + 1
+        .Add "UnicodeCompression", .Count + 1
+        .Add "AppendOnly", .Count + 1
+        .Add "Format", .Count + 1
+        .Add "DecimalPlaces", .Count + 1
+        
+     
+    End With
+    
+    'specific to file
+    Select Case fldType
+    Case dbAttachment, 11, 15, 109 '11 - OleObject, 15 - GUID, 109 - complex field
+        proplist("ValidationRule") = -1
+        proplist("ValidationText") = -1
+        proplist("DefaultValue") = -1
+        proplist("Required") = -1
+    End Select
+    
+    'not relevant for linked tables
+    If linked Then
+        proplist("DefaultValue") = -1
+        proplist("Required") = -1
+        proplist("AllowZeroLength") = -1
+        proplist("ValidationRule") = -1
+        proplist("ValidationText") = -1
+        proplist("AppendOnly") = -1
+        proplist("Expression") = -1
+    End If
+    
+    Set FieldPropList = proplist
+
+End Function
+
+Public Function TablePropList( _
+    Optional ByVal linked As Integer = 0 _
+    ) As Dictionary
+
+    Dim proplist As Dictionary
+    Set proplist = New Dictionary
+
+    With proplist
+    
+        .Add "Name", -1
+        .Add "Connect", -1
+        .Add "SourceTableName", -1
+        .Add "NameMap", -1
+        .Add "GUID", -1
+        .Add "DateCreated", -1
+        .Add "LastUpdated", -1
+        .Add "BackTint", -1
+        .Add "BackShade", -1
+        .Add "ThemeFontIndex", -1
+        .Add "AlternateBackThemeColorIndex", -1
+        .Add "AlternateBackTint", -1
+        .Add "AlternateBackShade", -1
+        .Add "DatasheetGridlinesThemeColorIndex", -1
+        .Add "DatasheetForeThemeColorIndex", -1
+        .Add "Updatable", -1
+        .Add "RecordCount", -1
+        .Add "LinkChildFields", -1
+        .Add "LinkMasterFields", -1
+        
+        'Currently commented
+        .Add "FCMinReadVer", -1
+        .Add "FCMinWriteVer", -1
+        .Add "FCMinDesignVer", -1
+        
+        .Add "Attributes", .Count + 1
+        .Add "Caption", .Count + 1
+        .Add "Description", .Count + 1
+        .Add "ValidationRule", .Count + 1
+        .Add "ValidationText", .Count + 1
+        .Add "PublishToWeb", .Count + 1
+        .Add "Orientation", .Count + 1
+        .Add "OrderByOn", .Count + 1
+        .Add "DefaultView", .Count + 1
+        .Add "DisplayViewsOnSharePointSite", .Count + 1
+        .Add "TotalsRow", .Count + 1
+        .Add "FilterOnLoad", .Count + 1
+        .Add "OrderByOnLoad", .Count + 1
+        .Add "HideNewField", .Count + 1
+        .Add "ReadOnlyWhenDisconnected", .Count + 1
+
+    End With
+    
+    If linked Then
+        proplist("ValidationRule") = -1
+        proplist("ValidationText") = -1
+    End If
+    
+    Set TablePropList = proplist
+
+End Function
