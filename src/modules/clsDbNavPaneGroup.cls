@@ -298,12 +298,12 @@ Private Function IDbComponent_GetAllFromDB(Optional blnModifiedOnly As Boolean =
                 End If
 
                 ' Add any item listed in this group
-                If Nz(!ObjectName) = vbNullString Then
+                If Nz(!objectName) = vbNullString Then
                     ' Saved group with no items.
                     m_Count = m_Count + 1
                 Else
                     Set dObject = New Dictionary
-                    dObject.Add "Name", Nz(!ObjectName)
+                    dObject.Add "Name", Nz(!objectName)
                     dObject.Add "Type", Nz(!ObjectType, 0)
                     dObject.Add "Flags", Nz(!ObjectFlags, 0)
                     dObject.Add "Icon", Nz(!ObjectIcon, 0)
@@ -394,6 +394,10 @@ Private Function IDbComponent_DateModified() As Date
     IDbComponent_DateModified = 0
 End Function
 
+
+Private Property Get IDbComponent_SourceFolder() As String
+    IDbComponent_SourceFolder = vbNullString
+End Property
 
 '---------------------------------------------------------------------------------------
 ' Procedure : SourceModified

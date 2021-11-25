@@ -195,6 +195,16 @@ End Property
 
 
 '---------------------------------------------------------------------------------------
+' Procedure : SourceFolder
+' Author    : Adam Waller
+' Date      : 4/23/2020
+' Purpose   : Return a name of source folder for this type. (I.e. forms, queries, macros)
+'---------------------------------------------------------------------------------------
+'
+Public Property Get SourceFolder() As String
+End Property
+
+'---------------------------------------------------------------------------------------
 ' Procedure : SingleFile
 ' Author    : Adam Waller
 ' Date      : 4/24/2020

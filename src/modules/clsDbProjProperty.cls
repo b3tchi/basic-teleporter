@@ -222,6 +222,10 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
+Private Property Get IDbComponent_SourceFolder() As String
+    IDbComponent_SourceFolder = vbNullString
+End Property
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SourceModified
 ' Author    : Adam Waller

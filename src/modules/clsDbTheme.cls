@@ -427,6 +427,10 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
+Private Property Get IDbComponent_SourceFolder() As String
+    IDbComponent_SourceFolder = "themes"
+End Property
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SourceModified
 ' Author    : Adam Waller
@@ -462,7 +466,7 @@ End Property
 ' Purpose   : Return the base folder for import/export of this component.
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
-    IDbComponent_BaseFolder = Options.GetExportFolder & "themes" & PathSep
+    IDbComponent_BaseFolder = Options.GetExportFolder & IDbComponent_SourceFolder & PathSep
 End Property
 
 

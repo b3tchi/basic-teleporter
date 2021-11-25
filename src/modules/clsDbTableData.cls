@@ -104,7 +104,7 @@ Public Sub ExportTableDataAsTDF(strTable As String)
         Next fld
         cData.Add vbCrLf
         rst.MoveNext
-        Log.Increment ' Increment log, in case this takes a while
+        'Log.Increment ' Increment log, in case this takes a while
     Loop
 
     ' Save output file
@@ -200,7 +200,7 @@ Private Sub ImportTableDataTDF(strFile As String)
             rst.Update
         End If
         ' Increment log, just in case this takes a while.
-        Log.Increment
+        'Log.Increment
     Loop
     stm.Close
     Set stm = Nothing
@@ -476,6 +476,10 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
+Private Property Get IDbComponent_SourceFolder() As String
+    IDbComponent_SourceFolder = "tables"
+End Property
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SourceModified
 ' Author    : Adam Waller
@@ -510,7 +514,7 @@ End Property
 ' Purpose   : Return the base folder for import/export of this component.
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
-    IDbComponent_BaseFolder = Options.GetExportFolder & "tables" & PathSep
+    IDbComponent_BaseFolder = Options.GetExportFolder & IDbComponent_SourceFolder & PathSep
 End Property
 
 
