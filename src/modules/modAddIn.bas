@@ -39,7 +39,7 @@ End Enum
 '
 Private Function AddInLaunch(RibbonCmdIn As Long) As Boolean
     PreloadVBE
-    Form_frmVCSMain.HandleCmd RibbonCmdIn
+   ' Form_frmVCSMain.HandleCmd RibbonCmdIn
     AddInLaunch = True
 End Function
 
@@ -162,7 +162,7 @@ Public Function ExampleLoadAddInAndRunExport()
 
     ' See if add-in project is already loaded.
     For Each proj In VBE.VBProjects
-        If StrComp(proj.FileName, strAddInPath, vbTextCompare) = 0 Then
+        If StrComp(proj.filename, strAddInPath, vbTextCompare) = 0 Then
             Set objAddIn = proj
         End If
     Next proj
@@ -179,7 +179,7 @@ Public Function ExampleLoadAddInAndRunExport()
     
         ' See if it is loaded now...
         For Each proj In VBE.VBProjects
-            If StrComp(proj.FileName, strAddInPath, vbTextCompare) = 0 Then
+            If StrComp(proj.filename, strAddInPath, vbTextCompare) = 0 Then
                 Set objAddIn = proj
             End If
         Next proj
@@ -206,7 +206,7 @@ End Function
 Public Function GetAddInProject() As VBProject
     Dim oProj As VBProject
     For Each oProj In VBE.VBProjects
-        If StrComp(oProj.FileName, GetAddinFileName, vbTextCompare) = 0 Then
+        If StrComp(oProj.filename, GetAddinFileName, vbTextCompare) = 0 Then
             Set GetAddInProject = oProj
             Exit For
         End If
