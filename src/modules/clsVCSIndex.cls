@@ -105,8 +105,6 @@ Public Sub Save(Optional strInFolder As String)
     Dim dComponents As Dictionary
     Dim strFile As String
     
-    'Stop
-    
     ' Load dictionary from properties
     For Each varKey In m_dIndex.Keys
         If varKey <> "Components" Then
@@ -177,7 +175,6 @@ Public Function Update(cItem As IDbComponent, intAction As eIndexActionType, _
         
         ' Save timestamp of exported source file.
         dteDateTime = GetLastModifiedDate(cItem.SourceFile)
-        'Stop
         .Item("SourceModified") = ZNDate(CStr(dteDateTime))
         
         ' Save hash of file properties

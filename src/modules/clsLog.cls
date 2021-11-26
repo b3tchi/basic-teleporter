@@ -24,7 +24,7 @@ Private Const cstrSpacer As String = "-------------------------------------"
 Private m_Log As clsConcat      ' Log file output
 Private m_Console As clsConcat  ' Console output
 Private m_RichText As TextBox   ' Text box to display HTML
-Private m_Prog As clsLblProg    ' Progress bar
+'Private m_Prog As clsLblProg    ' Progress bar
 Private m_blnProgressActive As Boolean
 Private m_sngLastUpdate As Single
 
@@ -75,7 +75,7 @@ Public Sub Add(strText As String, Optional blnPrint As Boolean = True, _
         ' Remove existing progress indicator if in use.
         If m_blnProgressActive Then
             m_blnProgressActive = False
-            m_Prog.Hide
+            'm_Prog.Hide
         End If
     
         ' Build HTML output for console
@@ -136,7 +136,7 @@ Public Sub Flush()
     If Not m_RichText Is Nothing Then
         With m_RichText
             m_blnProgressActive = False
-            If Not m_Prog Is Nothing Then m_Prog.Hide
+            'If Not m_Prog Is Nothing Then m_Prog.Hide
             ' Set value, not text to avoid errors with large text strings.
             Echo False
             '.SelStart = Len(.Text & vbNullString)
@@ -269,12 +269,12 @@ End Sub
 ' Purpose   : Pass the Progress Bar reference to this class.
 '---------------------------------------------------------------------------------------
 '
-Public Property Set ProgressBar(cProg As clsLblProg)
-    Set m_Prog = cProg
-End Property
-Public Property Get ProgressBar() As clsLblProg
-    Set ProgressBar = m_Prog
-End Property
+'Public Property Set ProgressBar(cProg As clsLblProg)
+'    Set m_Prog = cProg
+'End Property
+'Public Property Get ProgressBar() As clsLblProg
+'    Set ProgressBar = m_Prog
+'End Property
 
 
 '---------------------------------------------------------------------------------------
@@ -284,9 +284,9 @@ End Property
 ' Purpose   : Wrapper to set max value for progress bar.
 '---------------------------------------------------------------------------------------
 '
-Public Property Let ProgMax(lngMaxValue As Long)
-    If Not m_Prog Is Nothing Then m_Prog.Max = lngMaxValue
-End Property
+'Public Property Let ProgMax(lngMaxValue As Long)
+'    If Not m_Prog Is Nothing Then m_Prog.Max = lngMaxValue
+'End Property
 
 
 '---------------------------------------------------------------------------------------
@@ -346,49 +346,49 @@ End Sub
 ' Purpose   : Increment the progress bar
 '---------------------------------------------------------------------------------------
 '
-Public Sub Increment()
-    
-    ' Track the last time we did an increment
-    Static sngLastIncrement As Single
-    Static lngProgress As Long
-    
-    ' Ignore if we are not using the form
-    If m_Prog Is Nothing Then Exit Sub
-    
-    ' Increment value, even if we don't display it.
-    lngProgress = lngProgress + 1
-    
-    ' Don't run the incrementer unless it has been 1
-    ' second since the last displayed output refresh.
-    If m_sngLastUpdate > Timer - 1 Then Exit Sub
-    
-    ' Allow an update to the screen every x seconds.
-    ' Find the balance between good progress feedback
-    ' without slowing down the overall export time.
-    If sngLastIncrement > Timer - 0.5 Then Exit Sub
-
-    ' Check the current status.
-    Perf.OperationStart "Increment Progress"
-    If Not m_blnProgressActive Then
-        ' Show the progress bar
-        lngProgress = 1
-        ' Flush any pending output
-        With m_RichText
-            Echo False
-            ' Show the last 20K characters so
-            ' we don't hit the Integer limit
-            ' on the SelStart property.
-            .Value = m_Console.RightStr(20000)
-            If VerifyFocus(m_RichText) Then .SelStart = 20000
-            Echo True
-        End With
-    End If
-    
-    ' Status is now active
-    sngLastIncrement = Timer
-    m_blnProgressActive = True
-    m_Prog.Value = lngProgress
-    Perf.OperationEnd
-    
-End Sub
+'Public Sub Increment()
+'
+'    ' Track the last time we did an increment
+'    Static sngLastIncrement As Single
+'    Static lngProgress As Long
+'
+'    ' Ignore if we are not using the form
+'    'If m_Prog Is Nothing Then Exit Sub
+'
+'    ' Increment value, even if we don't display it.
+'    lngProgress = lngProgress + 1
+'
+'    ' Don't run the incrementer unless it has been 1
+'    ' second since the last displayed output refresh.
+'    If m_sngLastUpdate > Timer - 1 Then Exit Sub
+'
+'    ' Allow an update to the screen every x seconds.
+'    ' Find the balance between good progress feedback
+'    ' without slowing down the overall export time.
+'    If sngLastIncrement > Timer - 0.5 Then Exit Sub
+'
+'    ' Check the current status.
+'    Perf.OperationStart "Increment Progress"
+'    If Not m_blnProgressActive Then
+'        ' Show the progress bar
+'        lngProgress = 1
+'        ' Flush any pending output
+'        With m_RichText
+'            Echo False
+'            ' Show the last 20K characters so
+'            ' we don't hit the Integer limit
+'            ' on the SelStart property.
+'            .Value = m_Console.RightStr(20000)
+'            If VerifyFocus(m_RichText) Then .SelStart = 20000
+'            Echo True
+'        End With
+'    End If
+'
+'    ' Status is now active
+'    sngLastIncrement = Timer
+'    m_blnProgressActive = True
+'    'm_Prog.Value = lngProgress
+'    Perf.OperationEnd
+'
+'End Sub
 

@@ -79,10 +79,11 @@ End Enum
 ' Error levels used for logging and monitoring the status
 ' of the current operation.
 Public Enum eErrorLevel
-    eelNoError
-    eelWarning      ' Logged to file
-    eelError        ' Displayed and logged
-    eelCritical     ' Cancel operation
+    eelNoError = 0
+    eelWarning = 1               ' Logged to file
+    eelError = 2                   ' Displayed and logged
+    eelCritical = 3               ' Cancel operation
+    eelError2 = 102             ' Condensed Error Logging
 End Enum
 
 ' Compare mode for cloning dictionary object
