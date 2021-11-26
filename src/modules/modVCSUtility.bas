@@ -115,7 +115,7 @@ Public Function MergeSecondaryFiles( _
             
             For Each files In arr_Files
             
-                MergeCollection FileList, GetFilePathsInFolder(secondaryfolder, files)
+                MergeCollection FileList, GetFilePathsInFolder(secondaryfolder, CStr(files))
             'MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.cls")
         
             Next
