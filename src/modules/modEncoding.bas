@@ -196,8 +196,11 @@ End Sub
 '           : to properly display in diffs and other programs. See issue #154
 '---------------------------------------------------------------------------------------
 '
-Public Sub ConvertAnsiUtf8(strSourceFile As String, strDestinationFile As String, _
-    Optional blnDeleteSourceFileAfterConversion As Boolean = True)
+Public Sub ConvertAnsiUtf8( _
+    strSourceFile As String _
+    , strDestinationFile As String _
+    , Optional blnDeleteSourceFileAfterConversion As Boolean = True _
+    )
     
     ' Perform file conversion
     ReEncodeFile strSourceFile, GetSystemEncoding, strDestinationFile, "utf-8", adSaveCreateOverWrite
