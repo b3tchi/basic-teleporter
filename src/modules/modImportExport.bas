@@ -22,9 +22,10 @@ Public Sub Export_Cli( _
     fullRun As Boolean _
     , optSavePrintVars As Boolean _
     , exportdataPrefix As String _
-    , sourceFolder As String _
+    , SourceFolder As String _
     , optForceImportSql As Boolean _
     , optSanitizeQuerySql As Boolean _
+    , SecondarySourceFolders As String _
     )
 
     Set Options = Nothing
@@ -37,9 +38,13 @@ Public Sub Export_Cli( _
     'overwrite
     Options.SavePrintVars = optSavePrintVars
     Options.AddLocalTablesToExportData etdXML, exportdataPrefix
-    Options.ExportFolder = sourceFolder
+    Options.ExportFolder = SourceFolder
     Options.ForceImportOriginalQuerySQL = optForceImportSql
     Options.SanitizeQuery = optSanitizeQuerySql
+    
+    On Error Resume Next
+    Options.SecondaryExportFolders.Add SecondarySourceFolders, SecondarySourceFolders
+    If Err.Number = 457 Then Err.Clear 'skip duplicate errors
     
     'save
     Options.SaveOptionsForProject
@@ -47,9 +52,13 @@ Public Sub Export_Cli( _
     Call ExportSource(CBool(fullRun))
 
 End Sub
-Public Sub Build_Cli(srcPath, fullRun)
+Public Sub Build_Cli( _
+    srcPath _
+    , fullRun _
+    , SecondarySourceFolders _
+    )
 
-    Call Build(CStr(srcPath), CBool(fullRun), True)
+    Call Build(CStr(srcPath), CBool(fullRun), True, CStr(SecondarySourceFolders))
 
 End Sub
 Public Sub ExportSource(blnFullExport As Boolean)
@@ -139,7 +148,7 @@ Public Sub ExportSource(blnFullExport As Boolean)
             ' Show category header and clear out any orphaned files.
             Log.Spacer Options.ShowDebug
             Log.PadRight "Exporting " & LCase(cCategory.Category) & "...", , Options.ShowDebug
-            Log.ProgMax = lngCount
+            'Log.ProgMax = lngCount
             Perf.ComponentStart cCategory.Category
 
             ' Loop through each object in this category.
@@ -148,7 +157,7 @@ Public Sub ExportSource(blnFullExport As Boolean)
                 'Debug.Assert cDbObject.Name <> "frm_Kanban"
                 
                 ' Export object
-                Log.Increment
+                'Log.Increment
                 Log.Add "  " & cDbObject.Name, Options.ShowDebug
                 cDbObject.Export
                 CatchAny eelError, "Error exporting " & cDbObject.Name, ModuleName & ".ExportSource", True, True
@@ -226,7 +235,12 @@ End Sub
 ' Purpose   : Build the project from source files.
 '---------------------------------------------------------------------------------------
 '
-Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, Optional startinNew As Boolean = False)
+Public Sub Build( _
+    strSourceFolder As String _
+    , blnFullBuild As Boolean _
+    , Optional startinNew As Boolean = False _
+    , Optional SecondarySourceFolders As String = "" _
+    )
 
     Dim strPath As String
     Dim strBackup As String
@@ -280,6 +294,10 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, Optional st
     Set Options = Nothing
     Options.LoadOptionsFromFile StripSlash(strSourceFolder) & PathSep & "vcs-options.json"
     
+    'Overwrite if there is already option
+    If SecondarySourceFolders <> "" Then
+        Options.SecondaryExportFolders = SecondarySourceFolders
+    End If
     'Stop
     
     ' Export folder
@@ -328,7 +346,7 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, Optional st
             ShowIDE
         Else
             ' Launch the GUI form
-            Form_frmVCSMain.StartBuild
+            'Form_frmVCSMain.StartBuild
             
         End If
     End If
@@ -406,6 +424,9 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, Optional st
     Log.Spacer
     For Each cCategory In GetAllContainers
         
+        'Stop
+        Debug.Assert Not TypeName(cCategory) = "clsDbModule"
+        
         ' Get collection of source files
         If blnFullBuild Then
             ' Return all the source files
@@ -424,18 +445,18 @@ Public Sub Build(strSourceFolder As String, blnFullBuild As Boolean, Optional st
             ' Show category header
             Log.Spacer Options.ShowDebug
             Log.PadRight IIf(blnFullBuild, "Importing ", "Merging ") & LCase(cCategory.Category) & "...", , Options.ShowDebug
-            Log.ProgMax = colFiles.Count
+           ' Log.ProgMax = colFiles.Count
             Perf.ComponentStart cCategory.Category
 
             ' Loop through each file in this category.
             For Each varFile In colFiles
                 ' Import/merge the file
-                Log.Increment
+               ' Log.Increment
                 Log.Add "  " & FSO.GetFileName(varFile), Options.ShowDebug
                 If blnFullBuild Then
                     cCategory.Import CStr(varFile)
-                Else
-                    cCategory.Merge CStr(varFile)
+'                Else
+'                    cCategory.Merge CStr(varFile)
                 End If
                 CatchAny eelError, strType & " error in: " & varFile, ModuleName & ".Build", True, True
                                                     
@@ -503,7 +524,7 @@ cleanup:
     If Forms.Count > 0 Then
         ' Finish up on GUI
         If Not startinNew Then
-            Form_frmVCSMain.FinishBuild blnFullBuild
+           ' Form_frmVCSMain.FinishBuild blnFullBuild
         End If
     Else
         ' Allow navigation pane to refresh list of objects.
@@ -756,7 +777,7 @@ Public Sub InitializeForms()
     Set cont = New clsDbForm
     
     ' Set up progress bar
-    Log.ProgMax = cont.GetAllFromDB.Count
+   ' Log.ProgMax = cont.GetAllFromDB.Count
     
     ' Loop through all forms
     For Each frm In cont.GetAllFromDB
@@ -766,7 +787,7 @@ Public Sub InitializeForms()
         DoCmd.OpenForm frm.Name, acDesign, , , , acHidden
         DoCmd.Close acForm, frm.Name, acSaveNo
         Perf.OperationEnd
-        Log.Increment
+       'Log.Increment
         
         ' Log any errors
         CatchAny eelError, "Error while initializing form " & frm.Name, ModuleName & ".InitializeForms"

@@ -35,6 +35,7 @@ End Type
 Implements IDbComponent
 
 
+
 '---------------------------------------------------------------------------------------
 ' Procedure : Export
 ' Author    : Adam Waller
@@ -47,15 +48,43 @@ Private Sub IDbComponent_Export()
     Dim strTempFile As String
     Dim strExt As String
     Dim strAlternateFile As String
+    Dim finalpath As String
 
     ' Export to temp file and convert to UTF-8 encoding
     strTempFile = GetTempFile
     ExportVbComponent strTempFile
-    ConvertAnsiUtf8 strTempFile, IDbComponent_SourceFile
     
-    ' Remove any file with the same name but alternate extension
-    strExt = IIf(GetExtension = ".bas", ".cls", ".bas")
-    strAlternateFile = IDbComponent_BaseFolder & GetSafeFileName(m_Module.Name) & strExt
+    finalpath = SecondaryPathCheck(IDbComponent_SourceFile, IDbComponent_SourceFolder, m_Module.Name, GetExtension)
+    
+'    finalpath = IDbComponent_SourceFile
+'
+'
+'    If Options.SecondaryExportFolders.Count > 0 Then
+'
+'        Dim filename As String
+'        Dim relativePath 'As String
+'        Dim secondaryfolder As String
+'
+'        filename = IDbComponent_SourceFolder & PathSep & GetSafeFileName(m_Module.Name) & GetExtension
+'
+'        For Each relativePath In Options.SecondaryExportFolders
+'
+'            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep
+'
+'            If FSO.FileExists(secondaryfolder & filename) Then
+'                finalpath = secondaryfolder & filename
+'            End If
+'
+'        Next
+'
+'    End If
+    
+    'Export to folder
+    ConvertAnsiUtf8 strTempFile, finalpath
+ 
+    'Remove any file with the same name but alternate extension
+    strAlternateFile = Mid(finalpath, 1, Len(finalpath) - 4) & IIf(GetExtension = ".bas", ".cls", ".bas")
+    
     If FSO.FileExists(strAlternateFile) Then DeleteFile strAlternateFile
     
     ' Update the index with the current VBA hash. (Note, this will not show
@@ -294,6 +323,26 @@ End Function
 Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
     Set IDbComponent_GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder, "*.bas")
     MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(IDbComponent_BaseFolder, "*.cls")
+
+    MergeSecondaryFiles IDbComponent_GetFileList, IDbComponent_SourceFolder, Array("*.bas", "*.cls")
+
+
+'    If Options.SecondaryExportFolders.Count > 0 Then
+'
+'        Dim secondaryfolder As String
+'        Dim relativePath
+'
+'        For Each relativePath In Options.SecondaryExportFolders
+'
+'            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep & IDbComponent_SourceFolder & PathSep
+'
+'            MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.bas")
+'            MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.cls")
+'
+'        Next
+'
+'    End If
+    
 End Function
 
 
@@ -342,6 +391,10 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
+Private Property Get IDbComponent_SourceFolder() As String
+    IDbComponent_SourceFolder = "modules"
+End Property
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SourceModified
 ' Author    : Adam Waller
@@ -375,10 +428,10 @@ End Property
 ' Date      : 4/23/2020
 ' Purpose   : Return the base folder for import/export of this component.
 '---------------------------------------------------------------------------------------
-Private Property Get IDbComponent_BaseFolder() As String
-    IDbComponent_BaseFolder = Options.GetExportFolder & "modules" & PathSep
-End Property
 
+Private Property Get IDbComponent_BaseFolder() As String
+    IDbComponent_BaseFolder = Options.GetExportFolder & IDbComponent_SourceFolder & PathSep
+End Property
 
 '---------------------------------------------------------------------------------------
 ' Procedure : Name

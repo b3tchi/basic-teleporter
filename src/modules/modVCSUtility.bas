@@ -39,35 +39,38 @@ Public Function GetAllContainers() As Collection
         .Add New clsDbVbeForm
         .Add New clsDbProjProperty
         .Add New clsDbSavedSpec
-        If blnADP Then
-            ' Some types of objects only exist in ADP projects
-            .Add New clsAdpFunction
-            .Add New clsAdpServerView
-            .Add New clsAdpProcedure
-            .Add New clsAdpTable
-            .Add New clsAdpTrigger
-        ElseIf blnMDB Then
-            ' These objects only exist in DAO databases
-            .Add New clsDbProperty
-            .Add New clsDbSharedImage
-            .Add New clsDbTheme
-            .Add New clsDbImexSpec
-            .Add New clsDbTableDef
-            .Add New clsDbQuery
-        End If
+'        If blnADP Then
+'            ' Some types of objects only exist in ADP projects
+'            .Add New clsAdpFunction
+'            .Add New clsAdpServerView
+'            .Add New clsAdpProcedure
+'            .Add New clsAdpTable
+'            .Add New clsAdpTrigger
+'        ElseIf blnMDB Then
+        
+        ' These objects only exist in DAO databases
+        .Add New clsDbProperty
+        .Add New clsDbSharedImage
+        .Add New clsDbTheme
+        .Add New clsDbImexSpec
+        .Add New clsDbTableDef
+        .Add New clsDbQuery
+'        End If
+
         ' Additional objects to import after ADP/MDB specific items
         .Add New clsDbForm
         .Add New clsDbMacro
         .Add New clsDbReport
         .Add New clsDbTableData
         .Add New clsDbModule
-        If blnMDB Then
-            .Add New clsDbTableDataMacro
-            .Add New clsDbRelation
-            .Add New clsDbDocument
-            .Add New clsDbNavPaneGroup
-            .Add New clsDbHiddenAttribute
-        End If
+'        If blnMDB Then
+
+        .Add New clsDbTableDataMacro
+        .Add New clsDbRelation
+        .Add New clsDbDocument
+        .Add New clsDbNavPaneGroup
+        .Add New clsDbHiddenAttribute
+'        End If
     End With
     
 End Function
@@ -93,6 +96,67 @@ Public Function HasMoreRecentChanges(objItem As IDbComponent) As Boolean
     End If
 End Function
 
+Public Function MergeSecondaryFiles( _
+    ByRef FileList As Collection, _
+    ByVal SourceFolder As String, _
+    ByVal arr_Files As Variant _
+    )
+
+    If Options.SecondaryExportFolders.Count > 0 Then
+    
+        Dim secondaryfolder As String
+        Dim relativePath
+        
+        For Each relativePath In Options.SecondaryExportFolders
+        
+            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep & SourceFolder & PathSep
+            
+            Dim files
+            
+            For Each files In arr_Files
+            
+                MergeCollection FileList, GetFilePathsInFolder(secondaryfolder, files)
+            'MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.cls")
+        
+            Next
+        
+        Next
+        
+    End If
+
+
+End Function
+
+Public Function SecondaryPathCheck( _
+    ByVal SourceFile As String _
+    , ByVal SourceFolder As String _
+    , ByVal ModuleName As String _
+    , ByVal Extension As String _
+    ) As String
+    
+    SecondaryPathCheck = SourceFile
+    
+    If Options.SecondaryExportFolders.Count > 0 Then
+    
+        Dim filename As String
+        Dim relativePath 'As String
+        Dim secondaryfolder As String
+        
+        filename = SourceFolder & PathSep & GetSafeFileName(ModuleName) & Extension
+        
+        For Each relativePath In Options.SecondaryExportFolders
+        
+            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep
+            
+            If FSO.FileExists(secondaryfolder & filename) Then
+                SecondaryPathCheck = secondaryfolder & filename
+            End If
+            
+        Next
+        
+    End If
+    
+End Function
 
 '---------------------------------------------------------------------------------------
 ' Procedure : GetVCSVersion
@@ -128,10 +192,12 @@ End Function
 '           : and then removes any existing file before saving the object as text.
 '---------------------------------------------------------------------------------------
 '
-Public Sub SaveComponentAsText(intType As AcObjectType, _
-                                strName As String, _
-                                strFile As String, _
-                                Optional cDbObjectClass As IDbComponent = Nothing)
+Public Sub SaveComponentAsText( _
+    intType As AcObjectType, _
+    strName As String, _
+    strFile As String, _
+    Optional cDbObjectClass As IDbComponent = Nothing _
+    )
     
     Dim strTempFile As String
     Dim strPrintSettingsFile As String
@@ -239,10 +305,12 @@ End Sub
 ' Purpose   : Load the object into the database from the saved source file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub LoadComponentFromText(intType As AcObjectType, _
-                                strName As String, _
-                                strFile As String, _
-                                Optional cDbObjectClass As IDbComponent = Nothing)
+Public Sub LoadComponentFromText( _
+    intType As AcObjectType, _
+    strName As String, _
+    strFile As String, _
+    Optional cDbObjectClass As IDbComponent = Nothing _
+    )
 
     Dim strTempFile As String
     Dim strPrintSettingsFile As String
@@ -554,7 +622,7 @@ Public Sub ClearOrphanedSourceFiles(cType As IDbComponent, ParamArray StrExtensi
         
     ' Loop through files in folder
     Set oFolder = FSO.GetFolder(cType.BaseFolder)
-    For Each oFile In oFolder.Files
+    For Each oFile In oFolder.files
     
         ' Get base name and file extension
         ' (For performance reasons, minimize property access on oFile)
@@ -574,7 +642,7 @@ Public Sub ClearOrphanedSourceFiles(cType As IDbComponent, ParamArray StrExtensi
     Next oFile
     
     ' Remove base folder if we don't have any files in it
-    If oFolder.Files.Count = 0 Then oFolder.Delete True
+    If oFolder.files.Count = 0 Then oFolder.Delete True
     Perf.OperationEnd
     
 End Sub

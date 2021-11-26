@@ -21,6 +21,7 @@ Private Const ModuleName As String = "clsOptions"
 
 ' Options
 Public ExportFolder As String
+
 Public ShowDebug As Boolean
 Public UseFastSave As Boolean
 Public UseGitIntegration As Boolean
@@ -46,6 +47,7 @@ Public BreakOnError As Boolean
 Public PreserveRubberDuckID As Boolean
 Public SanitizeQuery As Boolean
 
+Public SecondaryExportFolders As Collection
 
 ' Constants for enum values
 ' (These values are not permanently stored and
@@ -86,6 +88,7 @@ Public Sub LoadDefaults()
         .HashAlgorithm = DefaultHashAlgorithm
         .UseShortHash = True
         .SanitizeQuery = True
+      
 
         ' Table data export
         Set .TablesToExportData = New Dictionary
@@ -132,6 +135,14 @@ Public Sub LoadDefaults()
             .Add "InspectSharedImages", False
             .Add "InspectThemeFiles", False
         End With
+
+        Set .SecondaryExportFolders = New Collection
+        
+'        With .SecondaryExportFolders
+'            .Add ""
+'        End With
+
+        
 
     End With
 
@@ -264,6 +275,8 @@ Public Sub LoadOptionsFromFile(strFile As String)
     ' the export folder location with no database open.
     m_strOptionsFilePath = strFile
 
+
+    'Stop
     ' Read in the options from the json file.
     Set dFile = ReadJsonFile(strFile)
     If Not dFile Is Nothing Then
@@ -281,6 +294,17 @@ Public Sub LoadOptionsFromFile(strFile As String)
                             Set Me.ExportPrintSettings = dOptions(strKey)
                         Case "TablesToExportData"
                             Set Me.TablesToExportData = CloneDictionary(dOptions(strKey), ecmTextCompare)
+                        Case "SecondaryExportFolders"
+                            'Stop
+                            If dOptions(strKey).Count > 0 Then
+                                Dim sef_path As Variant
+                                For Each sef_path In dOptions(strKey)
+                                    On Error Resume Next
+                                    Me.SecondaryExportFolders.Add sef_path, sef_path
+                                    If Err.Number = 457 Then Err.Clear 'skip duplicate errors
+                                Next
+                            End If
+                            
                         Case Else
                             ' Regular top-level properties
                             CallByName Me, strKey, VbLet, dOptions(strKey)
@@ -655,6 +679,7 @@ Private Sub Class_Initialize()
         .Add "BreakOnError"
         .Add "PreserveRubberDuckID"
         .Add "SanitizeQuery"
+        .Add "SecondaryExportFolders"
     End With
 
     ' Load default values

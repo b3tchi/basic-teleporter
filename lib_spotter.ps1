@@ -347,12 +347,14 @@ function export {
     ,$sourceDir
     ,[Nullable[boolean]]$doFullExport
     ,[Nullable[boolean]]$sanitizeQuery
+    ,[string]$secondarySourceDir
   )
   process{
 
     #parameter defaults
     if ([string]::IsNullOrEmpty($doFullExport)) {$doFullExport = $true}
     if ([string]::IsNullOrEmpty($sanitizeQuery)) {$sanitizeQuery = $true}
+    if ([string]::IsNullOrEmpty($secondarySourceDir)) {$secondarySourceDir = ""}
 
     #file exits ?
     $appfile = Get-Item $appPath
@@ -363,12 +365,17 @@ function export {
       $sourceDir = getSourceDir $appPath
     }
 
+    # if ($null -ne $secondarySourceDir){
+    #   $secondarySourceDir = Get-AbsolutePath $secondarySourceDir
+    # }
+
     # $appfile.Name
     Write-Information "app file $appfile" -InformationAction Continue
     Write-Information "app path $appPath" -InformationAction Continue
     Write-Information "worker path $workerPath" -InformationAction Continue
     Write-Information "source dir  $sourceDir" -InformationAction Continue
     Write-Information "full export $doFullExport" -InformationAction Continue
+    Write-Information "full export $secondarySourceDir" -InformationAction Continue
 
     $app = CreateAccess
     $app.Visible = $true
@@ -390,9 +397,10 @@ function export {
     [string]$srcPath = $sourceDir
     [boolean]$buildFromSql = $true
     [boolean]$optSanitizeQuery = $true
+    [string]$SecondarySrcPath = $secondarySourceDir
 
     #export execution
-    $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVarS, [ref]$localTableWc, [ref]$srcPath, [ref]$buildFromSql, [ref]$optSanitizeQuery)
+    $app.Run("Export_Cli", [ref]$fullExport, [ref]$printVarS, [ref]$localTableWc, [ref]$srcPath, [ref]$buildFromSql, [ref]$optSanitizeQuery, [ref]$SecondarySrcPath)
 
     #exportlog
     Get-Content (Join-Path $sourceDir "Export.log")
@@ -407,9 +415,11 @@ function export {
 function build(
   $sourceDir
   ,[Nullable[boolean]]$devWorker
+  ,[string]$secondarySourceDir
   ){
 
   if ([string]::IsNullOrEmpty($devWorker)) {$devWorker = $false}
+  if ([string]::IsNullOrEmpty($secondarySourceDir)) {$secondarySourceDir = ""}
 
   [string]$sourceDir = (Get-Item $sourceDir).FullName
 
@@ -468,7 +478,7 @@ function build(
   $ref = $app.References.AddFromFile($workerFinalPath)
 
   #run build
-  $app.Run("Build_Cli",[ref]$sourceDir,[ref]$true)
+  $app.Run("Build_Cli", [ref]$sourceDir, [ref]$true, [ref]$secondarySourceDir)
 
   #read & print log
   Get-Content (Join-Path $sourceDir "Build.log")
@@ -556,16 +566,21 @@ function ReadJsonConfig($sourceFile){
 
   $projectPath = Join-Path $sourceFile "vbe-project.json"
 
-  $json = (Get-Content "$projectPath" -Raw) | ConvertFrom-Json | Select Items
+  $json = (Get-Content "$projectPath" -Raw) | ConvertFrom-Json | Select-Object Items
 
   return $json.Items.FileName
 
+}
+Function Get-AbsolutePath {
+  param([string]$Path)
+  [System.IO.Path]::GetFullPath([System.IO.Path]::Combine((Get-Location).ProviderPath, $Path));
 }
 
 function getSourceDir(
   $appPath
   ){
 
+  #get full path from relative path
   $appDir = Split-Path -Path $appPath
 
   #build

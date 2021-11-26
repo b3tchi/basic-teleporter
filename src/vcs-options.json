@@ -55,6 +55,9 @@
     "UseShortHash": true,
     "BreakOnError": false,
     "PreserveRubberDuckID": false,
-    "SanitizeQuery": true
+    "SanitizeQuery": true,
+    "SecondaryExportFolders": [
+      ""
+    ]
   }
 }

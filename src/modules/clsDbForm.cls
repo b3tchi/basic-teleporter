@@ -121,6 +121,22 @@ End Function
 '
 Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
     Set IDbComponent_GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder, "*.bas")
+    
+    If Options.SecondaryExportFolders.Count > 0 Then
+    
+        Dim secondaryfolder As String
+        Dim relativePath
+        
+        For Each relativePath In Options.SecondaryExportFolders
+        
+            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep & "modules" & PathSep
+            
+            MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.bas")
+        
+        Next
+        
+    End If
+    
 End Function
 
 
@@ -176,6 +192,10 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
+Private Property Get IDbComponent_SourceFolder() As String
+    IDbComponent_SourceFolder = "forms"
+End Property
+
 '---------------------------------------------------------------------------------------
 ' Procedure : SourceModified
 ' Author    : Adam Waller
@@ -210,7 +230,7 @@ End Property
 ' Purpose   : Return the base folder for import/export of this component.
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
-    IDbComponent_BaseFolder = Options.GetExportFolder & "forms" & PathSep
+    IDbComponent_BaseFolder = Options.GetExportFolder & IDbComponent_SourceFolder & PathSep
 End Property
 
 

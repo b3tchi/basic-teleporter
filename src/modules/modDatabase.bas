@@ -323,7 +323,7 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Public Function SelectionInActiveProject() As Boolean
-    SelectionInActiveProject = (Application.VBE.ActiveVBProject.fileName = GetUncPath(CurrentProject.FullName))
+    SelectionInActiveProject = (Application.VBE.ActiveVBProject.filename = GetUncPath(CurrentProject.FullName))
 End Function
 
 
@@ -370,10 +370,10 @@ Private Function GetProjectByName(ByVal strPath As String) As VBProject
     ' VBProject filenames are UNC paths
     strUncPath = GetUncPath(strPath)
     
-    If VBE.ActiveVBProject.fileName <> strUncPath Then
+    If VBE.ActiveVBProject.filename <> strUncPath Then
         ' Search for project with matching filename.
         For Each objProj In VBE.VBProjects
-            If objProj.fileName = strUncPath Then
+            If objProj.filename = strUncPath Then
                 Set GetProjectByName = objProj
                 Exit For
             End If
