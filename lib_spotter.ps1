@@ -415,11 +415,11 @@ function export {
 function build(
   $sourceDir
   ,[Nullable[boolean]]$devWorker
-  ,[string]$secondarySourceDir
+  # ,[string]$secondarySourceDir
   ){
 
   if ([string]::IsNullOrEmpty($devWorker)) {$devWorker = $false}
-  if ([string]::IsNullOrEmpty($secondarySourceDir)) {$secondarySourceDir = ""}
+  # if ([string]::IsNullOrEmpty($secondarySourceDir)) {$secondarySourceDir = ""}
 
   [string]$sourceDir = (Get-Item $sourceDir).FullName
 
@@ -456,29 +456,35 @@ function build(
   $app.NewCurrentDatabase($buildFile)
 
   #rename worker
-  if($devWorker -eq $true){
-
-    $workerName = (Get-Item $workerPath).Name
-    $workerDir = Split-Path -Path $workerPath
-
-    $workerTempPath = Join-Path -Path $workerDir -ChildPath "Temp_$workerName"
-
-    if(Test-Path -Path $workerTempPath -PathType Leaf){
-      Remove-Item $workerTempPath
-    }
-
-    Copy-Item $workerPath -Destination $workerTempPath
-
-    $workerFinalPath = $workerTempPath
-
-  }else{
-    $workerFinalPath = $workerPath
-  }
+  # if($devWorker -eq $true){
+  #
+  #   $workerName = (Get-Item $workerPath).Name
+  #   $workerDir = Split-Path -Path $workerPath
+  #
+  #   $workerTempPath = Join-Path -Path $workerDir -ChildPath "Temp_$workerName"
+  #
+  #   if(Test-Path -Path $workerTempPath -PathType Leaf){
+  #     Remove-Item $workerTempPath
+  #   }
+  #
+  #   Copy-Item $workerPath -Destination $workerTempPath
+  #
+  #   $workerFinalPath = $workerTempPath
+  #
+  # }else{
+  $workerFinalPath = $workerPath
+  # }
 
   $ref = $app.References.AddFromFile($workerFinalPath)
 
   #run build
-  $app.Run("Build_Cli", [ref]$sourceDir, [ref]$true, [ref]$secondarySourceDir)
+  if($devWorker -eq $true){
+    Build_Cli0 $sourceDir $app
+    exit
+  }else{
+    $app.Run("Build_Cli", [ref]$sourceDir)
+  }
+
 
   #read & print log
   Get-Content (Join-Path $sourceDir "Build.log")
@@ -517,6 +523,127 @@ function build(
   }
 
 }
+
+function Build_Cli0 (
+  $sourceDir
+  ,$app
+  ){
+
+  Write-Information "going over cli0 function" -InformationAction Continue
+
+  $optionsFile = FolderHasVcsOptionsFile $sourceDir
+  if ($false -eq $optionsFile) {
+    Write-Information "vcs-options.json not found in source dir exiting" -InformationAction Continue
+    exit
+  }
+
+  $options = $app.Run("GetOptions")
+
+  $options.LoadOptionsFromFile([string]$optionsFile)
+  $options.ExportFolder = [string]$sourceDir
+
+  # $options
+
+  $buildFile = $app.CurrentProject.FullName()
+
+  Write-Information "building at file $buildFile" -InformationAction Continue
+
+  # $options
+  Write-Information "removing non builtin references" -InformationAction Continue
+  # $app.Run("RemoveNonBuiltInReferences")
+
+  #TODO Run Before Build
+  if($null -ne $options.RunBeforeBuild){
+    Write-Information "will run before build script" -InformationAction Continue
+  }
+
+  $containers = $app.Run("GetAllContainers")
+
+  #Import Container
+  foreach ($container in $containers) {
+    # Write-Information $container.Name -InformationAction Continue
+    # $container.DateModified2()
+    # $container
+    # Write-Information "loop iteration" -InformationAction Continue
+    $container.SourceFolder
+
+    if($container.SourceFolder -eq "modules"){
+      # $files = $container.GetFileList()
+      $files = GetFilesList_DbModule $sourceDir
+    }else{
+      $files = $container.GetFileList()
+    }
+
+    # $files = $container.GetFileList()
+
+    foreach($file in $files) {
+      $file
+      $container.Import([string]$file)
+
+    }
+
+  }
+
+  #Initialize Forms
+  Write-Information "initializeForms" -InformationAction Continue
+  $app.Run("InitializeForms")
+
+  #TODO Run After Build
+  if($null -ne $options.RunAfterBuild){
+    Write-Information "will run after build script" -InformationAction Continue
+  }
+
+  #Save Index Value
+  Write-Information "saving data to version contrindex " -InformationAction Continue
+  $vcsIndex = $app.Run("GetVcsIndex")
+  $now = get-Date
+  $vcsIndex.FullBuildDate = [datetime]$now
+  $vcsIndex.Save([string]$sourceDir)
+  $app.Run("CloseVcsIndex")
+
+}
+
+function GetFilesList_DbModule(
+    [string]$sourceDir
+    ){
+
+    $module = "modules"
+
+    $files = GetFilePathsInFolder (Join-Path $sourceDir $module) "*.bas"
+    $files += GetFilePathsInFolder (Join-Path $sourceDir $module) "*.cls"
+
+    $files
+
+}
+
+
+function GetFilePathsInFolder(
+    [string]$folder
+    ,[string]$filePattern
+    ){
+
+    if ([string]::IsNullOrEmpty($filePattern)) {$filePattern = "*.*"}
+
+    # $folder+"\"+$filePattern
+
+    Get-ChildItem -Path $folder -Filter $filePattern -Recurse | Select-Object -ExpandProperty FullName
+    # Get-ChildItem -Path $folder+"\"+$filePattern -Recurse | Select-Object -ExpandProperty FullName
+}
+
+function FolderHasVcsOptionsFile (
+    $sourceDir
+    ){
+
+  $optionsFile = Join-Path $sourceDir "vcs-options.json"
+
+  if(Test-Path -Path $optionsFile -PathType Leaf){
+    $optionsFile
+  }else{
+    $false
+  }
+
+}
+
 
 function RemoveReference(
   $app
