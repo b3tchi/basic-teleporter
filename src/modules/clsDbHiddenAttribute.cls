@@ -6,7 +6,7 @@ Attribute VB_Name = "clsDbHiddenAttribute"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '---------------------------------------------------------------------------------------
 ' Author    : Adam Waller / Indigo744
 ' Date      : 11/14/2020
@@ -49,7 +49,7 @@ End Sub
 ' Purpose   : Import the individual database component from a file.
 '---------------------------------------------------------------------------------------
 '
-Private Sub IDbComponent_Import(strFile As String)
+Public Sub Import(strFile As String)
 
     Dim dFile As Dictionary
     Dim dItems As Dictionary
@@ -186,9 +186,9 @@ End Function
 ' Purpose   : Return a list of file names to import for this component type.
 '---------------------------------------------------------------------------------------
 '
-Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
-    Set IDbComponent_GetFileList = New Collection
-    If FSO.FileExists(IDbComponent_SourceFile) Then IDbComponent_GetFileList.Add IDbComponent_SourceFile
+Public Function GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
+    Set GetFileList = New Collection
+    If FSO.FileExists(IDbComponent_SourceFile) Then GetFileList.Add IDbComponent_SourceFile
 End Function
 
 
@@ -237,8 +237,8 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
-Private Property Get IDbComponent_SourceFolder() As String
-    IDbComponent_SourceFolder = ""
+Public Property Get SourceFolder() As String
+    SourceFolder = ""
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ End Property
 ' Purpose   : The type of component represented by this class.
 '---------------------------------------------------------------------------------------
 '
-Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
+Private Property Get IDbComponent_ComponentType() As Long
     IDbComponent_ComponentType = edbHiddenAttribute
 End Property
 

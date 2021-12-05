@@ -6,7 +6,7 @@ Attribute VB_Name = "clsVCSIndex"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '---------------------------------------------------------------------------------------
 ' Module    : clsVCSIndex
 ' Author    : Adam Waller
@@ -382,7 +382,7 @@ End Function
 '           : in source files.
 '---------------------------------------------------------------------------------------
 '
-Public Function GetModifiedSourceFiles(cCategory As IDbComponent) As Collection
+Public Function GetModifiedSourceFiles(cCategory As Object) As Collection
 
     Dim colAllFiles As Collection
     Dim varFile As Variant

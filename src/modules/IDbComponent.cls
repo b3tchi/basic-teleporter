@@ -6,7 +6,7 @@ Attribute VB_Name = "IDbComponent"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '---------------------------------------------------------------------------------------
 ' Module    : IDbComponent (Abstract Class)
 ' Author    : Adam Waller
@@ -60,8 +60,8 @@ End Sub
 ' Purpose   : Import the individual database component from a file.
 '---------------------------------------------------------------------------------------
 '
-Public Sub Import(strFile As String)
-End Sub
+'Public Sub Import(strFile As String)
+'End Sub
 
 
 '---------------------------------------------------------------------------------------
@@ -157,8 +157,8 @@ End Property
 '           : Based on the export folder defined in options.
 '---------------------------------------------------------------------------------------
 '
-Public Function GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
-End Function
+'Public Function GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
+'End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ End Function
 ' Purpose   : The type of component represented by this class.
 '---------------------------------------------------------------------------------------
 '
-Public Property Get ComponentType() As eDatabaseComponentType
+Public Property Get ComponentType() As Long
 End Property
 
 
@@ -201,8 +201,8 @@ End Property
 ' Purpose   : Return a name of source folder for this type. (I.e. forms, queries, macros)
 '---------------------------------------------------------------------------------------
 '
-Public Property Get SourceFolder() As String
-End Property
+'Public Property Get SourceFolder() As String
+'End Property
 
 '---------------------------------------------------------------------------------------
 ' Procedure : SingleFile

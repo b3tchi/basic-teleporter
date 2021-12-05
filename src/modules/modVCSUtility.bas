@@ -22,16 +22,18 @@ Private Const ModuleName = "modVCSUtility"
 '           : when building the project from source.
 '---------------------------------------------------------------------------------------
 '
+
 Public Function GetAllContainers() As Collection
     
-    Dim blnADP As Boolean
     Dim blnMDB As Boolean
     
-    blnADP = (CurrentProject.ProjectType = acADP)
     blnMDB = (CurrentProject.ProjectType = acMDB)
     
-    Set GetAllContainers = New Collection
-    With GetAllContainers
+    Dim cntns As Collection
+    Set cntns = New Collection
+    
+    
+    With cntns
         ' Shared objects in both MDB and ADP formats
         .Add New clsDbProject
         .Add New clsDbVbeProject
@@ -72,6 +74,8 @@ Public Function GetAllContainers() As Collection
         .Add New clsDbHiddenAttribute
 '        End If
     End With
+    
+    Set GetAllContainers = cntns
     
 End Function
 
@@ -116,14 +120,12 @@ Public Function MergeSecondaryFiles( _
             For Each files In arr_Files
             
                 MergeCollection FileList, GetFilePathsInFolder(secondaryfolder, CStr(files))
-            'MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.cls")
         
             Next
         
         Next
         
     End If
-
 
 End Function
 

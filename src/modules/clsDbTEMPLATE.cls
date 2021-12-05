@@ -6,7 +6,7 @@ Attribute VB_Name = "clsDbTEMPLATE"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 ''---------------------------------------------------------------------------------------
 '' Author    : Adam Waller
 '' Date      : 4/23/2020
@@ -65,7 +65,7 @@ Attribute VB_Exposed = False
 '' Purpose   : Import the individual database component from a file.
 ''---------------------------------------------------------------------------------------
 ''
-'Private Sub IDbComponent_Import(strFile As String)
+'Public Sub Import(strFile As String)
 '
 'End Sub
 '
@@ -120,8 +120,8 @@ Attribute VB_Exposed = False
 '' Purpose   : Return a list of file names to import for this component type.
 ''---------------------------------------------------------------------------------------
 ''
-'Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
-'    'Set IDbComponent_GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder , "*.bas")
+'Public Function GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
+'    'Set GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder , "*.bas")
 'End Function
 '
 '
@@ -245,7 +245,7 @@ Attribute VB_Exposed = False
 '' Purpose   : The type of component represented by this class.
 ''---------------------------------------------------------------------------------------
 ''
-'Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
+'Private Property Get IDbComponent_ComponentType() As Long
 '    'IDbComponent_ComponentType = edbForm
 'End Property
 '

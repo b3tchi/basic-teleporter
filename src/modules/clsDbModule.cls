@@ -6,7 +6,7 @@ Attribute VB_Name = "clsDbModule"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '---------------------------------------------------------------------------------------
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -54,7 +54,7 @@ Private Sub IDbComponent_Export()
     strTempFile = GetTempFile
     ExportVbComponent strTempFile
     
-    finalpath = SecondaryPathCheck(IDbComponent_SourceFile, IDbComponent_SourceFolder, m_Module.Name, GetExtension)
+    finalpath = SecondaryPathCheck(IDbComponent_SourceFile, SourceFolder, m_Module.Name, GetExtension)
     
 '    finalpath = IDbComponent_SourceFile
 '
@@ -65,7 +65,7 @@ Private Sub IDbComponent_Export()
 '        Dim relativePath 'As String
 '        Dim secondaryfolder As String
 '
-'        filename = IDbComponent_SourceFolder & PathSep & GetSafeFileName(m_Module.Name) & GetExtension
+'        filename = SourceFolder & PathSep & GetSafeFileName(m_Module.Name) & GetExtension
 '
 '        For Each relativePath In Options.SecondaryExportFolders
 '
@@ -92,6 +92,9 @@ Private Sub IDbComponent_Export()
     VCSIndex.Update Me, eatExport, GetCodeModuleHash(edbModule, m_Module.Name)
         
 End Sub
+Public Function DateModified2() As Date
+    DateModified2 = 0
+End Function
 
 
 '---------------------------------------------------------------------------------------
@@ -101,7 +104,7 @@ End Sub
 ' Purpose   : Import the individual database component from a file.
 '---------------------------------------------------------------------------------------
 '
-Private Sub IDbComponent_Import(strFile As String)
+Public Sub Import(strFile As String)
 
     Dim strName As String
     Dim strTempFile As String
@@ -257,7 +260,7 @@ End Sub
 Private Sub IDbComponent_Merge(strFile As String)
     DeleteObjectIfExists acModule, GetObjectNameFromFileName(strFile)
     If FSO.FileExists(strFile) Then
-        IDbComponent_Import strFile
+        Import strFile
     Else
         VCSIndex.Remove Me
     End If
@@ -320,11 +323,12 @@ End Function
 ' Purpose   : Return a list of file names to import for this component type.
 '---------------------------------------------------------------------------------------
 '
-Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
-    Set IDbComponent_GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder, "*.bas")
-    MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(IDbComponent_BaseFolder, "*.cls")
+Public Function GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
+    
+    Set GetFileList = GetFilePathsInFolder(IDbComponent_BaseFolder, "*.bas")
+    MergeCollection GetFileList, GetFilePathsInFolder(IDbComponent_BaseFolder, "*.cls")
 
-    MergeSecondaryFiles IDbComponent_GetFileList, IDbComponent_SourceFolder, Array("*.bas", "*.cls")
+    MergeSecondaryFiles GetFileList, SourceFolder, Array("*.bas", "*.cls")
 
 
 '    If Options.SecondaryExportFolders.Count > 0 Then
@@ -334,10 +338,10 @@ Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = 
 '
 '        For Each relativePath In Options.SecondaryExportFolders
 '
-'            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep & IDbComponent_SourceFolder & PathSep
+'            secondaryfolder = Options.ExportFolder & PathSep & relativePath & PathSep & SourceFolder & PathSep
 '
-'            MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.bas")
-'            MergeCollection IDbComponent_GetFileList, GetFilePathsInFolder(secondaryfolder, "*.cls")
+'            MergeCollection GetFileList, GetFilePathsInFolder(secondaryfolder, "*.bas")
+'            MergeCollection GetFileList, GetFilePathsInFolder(secondaryfolder, "*.cls")
 '
 '        Next
 '
@@ -391,8 +395,8 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
-Private Property Get IDbComponent_SourceFolder() As String
-    IDbComponent_SourceFolder = "modules"
+Public Property Get SourceFolder() As String
+    SourceFolder = "modules"
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -430,7 +434,7 @@ End Property
 '---------------------------------------------------------------------------------------
 
 Private Property Get IDbComponent_BaseFolder() As String
-    IDbComponent_BaseFolder = Options.GetExportFolder & IDbComponent_SourceFolder & PathSep
+    IDbComponent_BaseFolder = Options.GetExportFolder & SourceFolder & PathSep
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -492,7 +496,7 @@ End Property
 ' Purpose   : The type of component represented by this class.
 '---------------------------------------------------------------------------------------
 '
-Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
+Private Property Get IDbComponent_ComponentType() As Long
     IDbComponent_ComponentType = edbModule
 End Property
 

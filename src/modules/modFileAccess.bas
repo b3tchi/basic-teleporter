@@ -201,7 +201,7 @@ Public Sub ClearFilesByExtension(ByVal strFolder As String, strExt As String)
     ' While the Dir() function would be simpler, it does not support Unicode.
     strFolderNoSlash = StripSlash(strFolder)
     If FSO.FolderExists(strFolderNoSlash) Then
-        For Each oFile In FSO.GetFolder(strFolderNoSlash).Files
+        For Each oFile In FSO.GetFolder(strFolderNoSlash).files
             If StrComp(FSO.GetExtensionName(oFile.Name), strExt, vbTextCompare) = 0 Then
                 ' Found at least one matching file. Use the wildcard delete.
                 DeleteFile FSO.BuildPath(strFolderNoSlash, "*." & strExt)
@@ -308,7 +308,7 @@ Public Function GetFilePathsInFolder(strFolder As String, Optional strFilePatter
     Set GetFilePathsInFolder = New Collection
     
     If FSO.FolderExists(strBaseFolder) Then
-        For Each oFile In FSO.GetFolder(strBaseFolder).Files
+        For Each oFile In FSO.GetFolder(strBaseFolder).files
             ' Add files that match the pattern.
             If oFile.Name Like strFilePattern Then GetFilePathsInFolder.Add oFile.Path
         Next oFile

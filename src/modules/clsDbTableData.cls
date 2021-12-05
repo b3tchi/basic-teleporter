@@ -6,7 +6,7 @@ Attribute VB_Name = "clsDbTableData"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
-Attribute VB_Exposed = False
+Attribute VB_Exposed = True
 '---------------------------------------------------------------------------------------
 ' Author    : Adam Waller
 ' Date      : 4/23/2020
@@ -297,7 +297,7 @@ End Function
 ' Purpose   : Import the table data from a file.
 '---------------------------------------------------------------------------------------
 '
-Private Sub IDbComponent_Import(strFile As String)
+Public Sub Import(strFile As String)
 
     Dim blnUseTemp As Boolean
     Dim strTempFile As String
@@ -397,11 +397,11 @@ End Function
 '           : a couple different file extensions involved.
 '---------------------------------------------------------------------------------------
 '
-Private Function IDbComponent_GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
+Public Function GetFileList(Optional blnModifiedOnly As Boolean = False) As Collection
     Dim colFiles As Collection
     Set colFiles = GetFilePathsInFolder(IDbComponent_BaseFolder, "*." & GetExtByFormat(etdTabDelimited))
     MergeCollection colFiles, GetFilePathsInFolder(IDbComponent_BaseFolder, "*." & GetExtByFormat(etdXML))
-    Set IDbComponent_GetFileList = colFiles
+    Set GetFileList = colFiles
 End Function
 
 
@@ -476,8 +476,8 @@ Private Function IDbComponent_DateModified() As Date
 End Function
 
 
-Private Property Get IDbComponent_SourceFolder() As String
-    IDbComponent_SourceFolder = "tables"
+Public Property Get SourceFolder() As String
+    SourceFolder = "tables"
 End Property
 
 '---------------------------------------------------------------------------------------
@@ -514,7 +514,7 @@ End Property
 ' Purpose   : Return the base folder for import/export of this component.
 '---------------------------------------------------------------------------------------
 Private Property Get IDbComponent_BaseFolder() As String
-    IDbComponent_BaseFolder = Options.GetExportFolder & IDbComponent_SourceFolder & PathSep
+    IDbComponent_BaseFolder = Options.GetExportFolder & SourceFolder & PathSep
 End Property
 
 
@@ -561,7 +561,7 @@ End Property
 ' Purpose   : The type of component represented by this class.
 '---------------------------------------------------------------------------------------
 '
-Private Property Get IDbComponent_ComponentType() As eDatabaseComponentType
+Private Property Get IDbComponent_ComponentType() As Long
     IDbComponent_ComponentType = edbTableData
 End Property
 

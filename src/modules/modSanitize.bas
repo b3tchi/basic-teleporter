@@ -1058,10 +1058,10 @@ Public Sub SanitizeXML_TableData(strPath As String)
     curStart = Perf.MicroTimer
     
     'GetFileName
-    Dim fileName As String
-    fileName = Mid(strPath, InStrRev(strPath, "\") + 1)
+    Dim filename As String
+    filename = Mid(strPath, InStrRev(strPath, "\") + 1)
     'Call worker function
-    strSanitized = pSanitizeXML_TableData(fileContent, fileName)
+    strSanitized = pSanitizeXML_TableData(fileContent, filename)
     
     Perf.OperationEnd
     

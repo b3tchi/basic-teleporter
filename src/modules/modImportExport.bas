@@ -44,7 +44,7 @@ Public Sub Export_Cli( _
     
     On Error Resume Next
     Options.SecondaryExportFolders.Add SecondarySourceFolders, SecondarySourceFolders
-    If Err.Number = 457 Then Err.Clear 'skip duplicate errors
+    If Err.Number = 457 Then Err.Clear 'skip duplicate entry error
     
     'save
     Options.SaveOptionsForProject
@@ -54,11 +54,12 @@ Public Sub Export_Cli( _
 End Sub
 Public Sub Build_Cli( _
     srcPath _
-    , fullRun _
-    , SecondarySourceFolders _
     )
 
-    Call Build(CStr(srcPath), CBool(fullRun), True, CStr(SecondarySourceFolders))
+'    , fullRun _
+'    , SecondarySourceFolders _
+
+    Call Build(CStr(srcPath), True, True)
 
 End Sub
 Public Sub ExportSource(blnFullExport As Boolean)
@@ -244,7 +245,7 @@ Public Sub Build( _
 
     Dim strPath As String
     Dim strBackup As String
-    Dim cCategory As IDbComponent
+    Dim cCategory As Object
     Dim sngStart As Single
     Dim colFiles As Collection
     Dim varFile As Variant
@@ -257,18 +258,19 @@ Public Sub Build( _
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
     
     ' The type of build will be used in various messages and log entries.
-    strType = IIf(blnFullBuild, "Build", "Merge")
+    'strType = IIf(blnFullBuild, "Build", "Merge")
+    strType = "Build"
     
     ' For full builds, close the current database if it is currently open.
-    If blnFullBuild Then
-        If Not (CurrentDb Is Nothing And CurrentProject.Connection Is Nothing) Then
-            ' Need to close the current database before we can replace it.
-            If Not startinNew Then
-                RunBuildAfterClose strSourceFolder
-                Exit Sub
-            End If
-        End If
-    End If
+'    If blnFullBuild Then
+'        If Not (CurrentDb Is Nothing And CurrentProject.Connection Is Nothing) Then
+'            ' Need to close the current database before we can replace it.
+''            If Not startinNew Then
+''                RunBuildAfterClose strSourceFolder
+''                Exit Sub
+''            End If
+'        End If
+'    End If
     
     ' Make sure we can find the source files
     If Not FolderHasVcsOptionsFile(strSourceFolder) Then
@@ -277,58 +279,59 @@ Public Sub Build( _
     End If
     
     ' Verify that the source files are being merged into the correct database.
-    If Not blnFullBuild Then
-        strPath = GetOriginalDbFullPathFromSource(strSourceFolder)
-        If strPath = vbNullString Then
-            MsgBox2 "Unable to determine database file name", "Required source files were not found or could not be decrypted:", strSourceFolder, vbExclamation
-            Exit Sub
-        ElseIf StrComp(strPath, CurrentProject.FullName, vbTextCompare) <> 0 Then
-            MsgBox2 "Cannot merge to a different database", _
-                "The database file name for the source files must match the currently open database.", _
-                "Current: " & CurrentProject.FullName & vbCrLf & _
-                "Source: " & strPath, vbExclamation
-            Exit Sub
-        End If
-    End If
+'    If Not blnFullBuild Then
+'        strPath = GetOriginalDbFullPathFromSource(strSourceFolder)
+'        If strPath = vbNullString Then
+'            MsgBox2 "Unable to determine database file name", "Required source files were not found or could not be decrypted:", strSourceFolder, vbExclamation
+'            Exit Sub
+'        ElseIf StrComp(strPath, CurrentProject.FullName, vbTextCompare) <> 0 Then
+'            MsgBox2 "Cannot merge to a different database", _
+'                "The database file name for the source files must match the currently open database.", _
+'                "Current: " & CurrentProject.FullName & vbCrLf & _
+'                "Source: " & strPath, vbExclamation
+'            Exit Sub
+'        End If
+'    End If
     
     Set Options = Nothing
     Options.LoadOptionsFromFile StripSlash(strSourceFolder) & PathSep & "vcs-options.json"
     
-    'Overwrite if there is already option
-    If SecondarySourceFolders <> "" Then
-        Options.SecondaryExportFolders = SecondarySourceFolders
-    End If
-    'Stop
-    
+'    'Overwrite if there is already option
+'    If SecondarySourceFolders <> "" Then
+'        On Error Resume Next
+'        Options.SecondaryExportFolders.Add SecondarySourceFolders, SecondarySourceFolders
+'        If Err.Number = 457 Then Err.Clear 'skip duplicate entry error
+'    End If
+
     ' Export folder
-    If startinNew Then
+'    If startinNew Then
         
-        Options.ExportFolder = strSourceFolder
-        strPath = CurrentProject.FullName
-        
-        Log.Add "Building " & strPath & "..."
+    Options.ExportFolder = strSourceFolder
+    strPath = CurrentProject.FullName
     
-    Else
+    Log.Add "Building " & strPath & "..."
     
-        ' Build original file name for database
-        If blnFullBuild Then
-            strPath = GetOriginalDbFullPathFromSource(strSourceFolder)
-            If strPath = vbNullString Then
-                MsgBox2 "Unable to determine database file name", "Required source files were not found or could not be decrypted:", strSourceFolder, vbExclamation
-                Exit Sub
-            End If
-        Else
-            ' Run any pre-merge instructions
-            'strText = dNZ(Options.GitSettings, "RunBeforeMerge")
-            If strText <> vbNullString Then
-                Log.Add "Running " & strText & "..."
-                Perf.OperationStart "RunBeforeMerge"
-                RunSubInCurrentProject strText
-                Perf.OperationEnd
-            End If
-        End If
-        
-    End If
+'    Else
+'
+'        ' Build original file name for database
+'        If blnFullBuild Then
+'            strPath = GetOriginalDbFullPathFromSource(strSourceFolder)
+'            If strPath = vbNullString Then
+'                MsgBox2 "Unable to determine database file name", "Required source files were not found or could not be decrypted:", strSourceFolder, vbExclamation
+'                Exit Sub
+'            End If
+'        Else
+'            ' Run any pre-merge instructions
+'            'strText = dNZ(Options.GitSettings, "RunBeforeMerge")
+'            If strText <> vbNullString Then
+'                Log.Add "Running " & strText & "..."
+'                Perf.OperationStart "RunBeforeMerge"
+'                RunSubInCurrentProject strText
+'                Perf.OperationEnd
+'            End If
+'        End If
+'
+'    End If
 
     
     ' Start log and performance timers
@@ -338,18 +341,18 @@ Public Sub Build( _
     Perf.StartTiming
     
     ' Check if we are building the add-in file
-    If Not startinNew Then
-        If FSO.GetFileName(strPath) = CodeProject.Name Then
-            ' When building this add-in file, we should output to the debug
-            ' window instead of the GUI form. (Since we are importing
-            ' a form with the same name as the GUI form.)
-            ShowIDE
-        Else
-            ' Launch the GUI form
-            'Form_frmVCSMain.StartBuild
-            
-        End If
-    End If
+'    If Not startinNew Then
+'        If FSO.GetFileName(strPath) = CodeProject.Name Then
+'            ' When building this add-in file, we should output to the debug
+'            ' window instead of the GUI form. (Since we are importing
+'            ' a form with the same name as the GUI form.)
+'            ShowIDE
+'        Else
+'            ' Launch the GUI form
+'            'Form_frmVCSMain.StartBuild
+'
+'        End If
+'    End If
 
     ' Display the build header.
     DoCmd.Hourglass True
@@ -363,45 +366,46 @@ Public Sub Build( _
         .Flush
     End With
     
-    If startinNew Then
-        Log.Add "Saving backup skipped start in New..."
-    Else
-        If FSO.FileExists(strPath) Then
-            ' Rename original file as a backup
-            strBackup = GetBackupFileName(strPath)
-            Log.Add "Saving backup of original database..."
-            Name strPath As strBackup
-            Log.Add "Saved as " & FSO.GetFileName(strBackup) & "."
-        End If
-    End If
+'    If startinNew Then
+'    Log.Add "Saving backup skipped start in New..."
+'    Else
+'        If FSO.FileExists(strPath) Then
+'            ' Rename original file as a backup
+'            strBackup = GetBackupFileName(strPath)
+'            Log.Add "Saving backup of original database..."
+'            Name strPath As strBackup
+'            Log.Add "Saved as " & FSO.GetFileName(strBackup) & "."
+'        End If
+'    End If
     
     ' Create a new database with the original name
-    If startinNew Then
-        Log.Add "Using cli-made database file " & CurrentProject.Name
+'    If startinNew Then
+    Log.Add "Using cli-made database file " & CurrentProject.Name
         'databese full report
-    Else
-    
-        If blnFullBuild Then
-            Perf.OperationStart "Create new database"
-            If LCase$(FSO.GetExtensionName(strPath)) = "adp" Then
-                ' ADP project
-                Application.NewAccessProject strPath
-            Else
-                ' Regular Access database
-                Application.NewCurrentDatabase strPath, GetFileFormat(strSourceFolder)
-                
-            End If
-            Perf.OperationEnd
-            If DatabaseOpen Then
-                Log.Add "Created blank database for import. (v" & CurrentProject.FileFormat & ")"
-            Else
-                CatchAny eelCritical, "Unable to create database file", ModuleName & ".Build"
-                Log.Add "This may occur when building an older database version if the 'New database sort order' (collation) option is not set to 'Legacy'"
-                GoTo cleanup
-            End If
-        End If
-        
-    End If
+'    Else
+'
+'        If blnFullBuild Then
+'            Perf.OperationStart "Create new database"
+'            'If LCase$(FSO.GetExtensionName(strPath)) = "adp" Then
+'                ' ADP project
+'            '    Application.NewAccessProject strPath
+'            'Else
+'                ' Regular Access database
+'            Application.NewCurrentDatabase strPath, GetFileFormat(strSourceFolder)
+'
+'            'End If
+'
+'            Perf.OperationEnd
+'            If DatabaseOpen Then
+'                Log.Add "Created blank database for import. (v" & CurrentProject.FileFormat & ")"
+'            Else
+'                CatchAny eelCritical, "Unable to create database file", ModuleName & ".Build"
+'                Log.Add "This may occur when building an older database version if the 'New database sort order' (collation) option is not set to 'Legacy'"
+'                GoTo cleanup
+'            End If
+'        End If
+'
+'    End If
     
     ' Now that we have a new database file, we can load the index.
     Set VCSIndex = Nothing
@@ -425,17 +429,18 @@ Public Sub Build( _
     For Each cCategory In GetAllContainers
         
         'Stop
-        Debug.Assert Not TypeName(cCategory) = "clsDbModule"
+'       Testing export module
+'        Debug.Assert Not TypeName(cCategory) = "clsDbModule"
         
         ' Get collection of source files
-        If blnFullBuild Then
+'        If blnFullBuild Then
             ' Return all the source files
-            Set colFiles = cCategory.GetFileList
-        Else
-            ' Return just the modified source files for merge
-            ' (Optionally uses the git integration to determine changes.)
-            Set colFiles = VCSIndex.GetModifiedSourceFiles(cCategory)
-        End If
+        Set colFiles = cCategory.GetFileList
+'        Else
+'            ' Return just the modified source files for merge
+'            ' (Optionally uses the git integration to determine changes.)
+'            Set colFiles = VCSIndex.GetModifiedSourceFiles(cCategory)
+'        End If
         
         ' Only show category details when source files are found
         If colFiles.Count = 0 Then
@@ -453,11 +458,12 @@ Public Sub Build( _
                 ' Import/merge the file
                ' Log.Increment
                 Log.Add "  " & FSO.GetFileName(varFile), Options.ShowDebug
-                If blnFullBuild Then
-                    cCategory.Import CStr(varFile)
+                
+                'If blnFullBuild Then
+                cCategory.Import CStr(varFile)
 '                Else
 '                    cCategory.Merge CStr(varFile)
-                End If
+                'End If
                 CatchAny eelError, strType & " error in: " & varFile, ModuleName & ".Build", True, True
                                                     
                 ' Bail out if we hit a critical error.
@@ -478,14 +484,14 @@ Public Sub Build( _
     InitializeForms
     
     ' Run any post-build/merge instructions
-    If blnFullBuild Then
-        If Options.RunAfterBuild <> vbNullString Then
-            Log.Add "Running " & Options.RunAfterBuild & "..."
-            Perf.OperationStart "RunAfterBuild"
-            RunSubInCurrentProject Options.RunAfterBuild
-            Perf.OperationEnd
-        End If
-    Else
+    'If blnFullBuild Then
+    If Options.RunAfterBuild <> vbNullString Then
+        Log.Add "Running " & Options.RunAfterBuild & "..."
+        Perf.OperationStart "RunAfterBuild"
+        RunSubInCurrentProject Options.RunAfterBuild
+        Perf.OperationEnd
+    End If
+    'Else
         ' Merge build
         'If Options.RunAfterMerge <> vbNullString Then
         '    Log.Add "Running " & Options.RunAfterMerge & "..."
@@ -493,7 +499,7 @@ Public Sub Build( _
         '    RunSubInCurrentProject Options.RunAfterMerge
         '    Perf.OperationEnd
         'End If
-    End If
+    'End If
     ' Log any errors after build/merge
     CatchAny eelError, "Error running " & CallByName(Options, "RunAfter" & strType, VbGet), ModuleName & ".Build", True, True
     
@@ -521,35 +527,34 @@ cleanup:
     
     ' Wrap up build.
     DoCmd.Hourglass False
-    If Forms.Count > 0 Then
-        ' Finish up on GUI
-        If Not startinNew Then
-           ' Form_frmVCSMain.FinishBuild blnFullBuild
-        End If
-    Else
+'    If Forms.Count > 0 Then
+'        ' Finish up on GUI
+'        If Not startinNew Then
+'           ' Form_frmVCSMain.FinishBuild blnFullBuild
+'        End If
+'    Else
         ' Allow navigation pane to refresh list of objects.
-        DoEvents
-    End If
+    DoEvents
+'    End If
     
     ' Save index file (After build complete)
-    If blnFullBuild Then
-        ' NOTE: Add a couple seconds since some items may still be in the process of saving.
-        VCSIndex.FullBuildDate = DateAdd("s", 2, Now)
-    Else
-        VCSIndex.MergeBuildDate = DateAdd("s", 2, Now)
-    End If
+'    If blnFullBuild Then
+    ' NOTE: Add a couple seconds since some items may still be in the process of saving.
+    VCSIndex.FullBuildDate = DateAdd("s", 2, Now)
+'    Else
+'        VCSIndex.MergeBuildDate = DateAdd("s", 2, Now)
+'    End If
+    
     VCSIndex.Save strSourceFolder
     Set VCSIndex = Nothing
         
     ' Show MessageBox if not using GUI for build.
-    If Forms.Count = 0 Then
-        ' Show message box when build is complete.
-    '    MsgBox2 strType & " Complete for '" & CurrentProject.Name & "'", _
-            "Note that some settings may not take effect until this database is reopened.", _
-            "A backup of the previous build was saved as '" & FSO.GetFileName(strBackup) & "'.", vbInformation
-    End If
-    
-    
+'    If Forms.Count = 0 Then
+'        ' Show message box when build is complete.
+'    '    MsgBox2 strType & " Complete for '" & CurrentProject.Name & "'", _
+'            "Note that some settings may not take effect until this database is reopened.", _
+'            "A backup of the previous build was saved as '" & FSO.GetFileName(strBackup) & "'.", vbInformation
+'    End If
     
 End Sub
 
@@ -716,8 +721,10 @@ Private Sub PrepareRunBootstrap()
     ' Identify and load module for bootstrap code
     strModule = Split(Options.RunBeforeBuild, ".")(0)
     With New clsDbModule
-        With .Parent
-            For Each varFile In .GetFileList
+        
+        For Each varFile In .GetFileList
+            
+           ' With .Parent
                 ' Look for matching name
                 strName = GetObjectNameFromFileName(CStr(varFile))
                 If StrComp(strName, strModule, vbTextCompare) = 0 Then
@@ -726,8 +733,11 @@ Private Sub PrepareRunBootstrap()
                     .Import CStr(varFile)
                     Exit For
                 End If
+            
+             'End With
+            
             Next varFile
-        End With
+       
     End With
     
     ' Make sure we actually have a module before we attempt to run the code
