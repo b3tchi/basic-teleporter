@@ -7,5 +7,8 @@ src/vcs-index.json
 #logs
 src/*.log
 
+#test accesses
+tests/*/*.accdb
+
 #any temprorary access files
 *.laccdb

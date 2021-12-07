@@ -1,11 +1,14 @@
 # Write-Information 'lib loaded' -InformationAction Continue
 
 $workerPath="$PSScriptRoot\Version Control.accda"
-
+$ds = [IO.Path]::DirectorySeparatorChar
+$ls = [Environment]::NewLine
+$sencd = [Text.Encoding]::Default
 # $workerPath=sitories\AccessVCS\Version Control_Test.accda"
 Write-Information "lib loaded $workerPath" -InformationAction Continue
 
-function GetExcel($scriptPath) {
+function GetExcel($scriptPath)
+{
 
   [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
 
@@ -17,7 +20,8 @@ function GetExcel($scriptPath) {
 
 }
 
-function CreateAccess(){
+function CreateAccess()
+{
 
   $appAccess =  New-Object -COMObject Access.Application
 
@@ -25,7 +29,8 @@ function CreateAccess(){
 
 }
 
-function GetAccess($scriptPath) {
+function GetAccess($scriptPath)
+{
 
   [void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
 
@@ -35,57 +40,75 @@ function GetAccess($scriptPath) {
 
 }
 
-function GetProject($officeApp){
+function GetProject($officeApp)
+{
 
-    $appName = $officeApp.Name
-    $appName = $appName.split(" ")[1]
+  $appName = $officeApp.Name
+  $appName = $appName.split(" ")[1]
 
-    # $officeApp
-    # Write-Debug $appName
+  # $officeApp
+  # Write-Debug $appName
 
-    if ($appName -eq "Access"){
-        $vbproj = $officeApp.VBE.VBProjects(1)
-    }elseif ($appName -eq "Excel"){
-        $vbproj = $officeApp.workbooks(1).vbProject
-    }
+  if ($appName -eq "Access")
+  {
+    $vbproj = $officeApp.VBE.VBProjects(1)
+  } elseif ($appName -eq "Excel")
+  {
+    $vbproj = $officeApp.workbooks(1).vbProject
+  }
 
-    return $vbproj
+  return $vbproj
 }
 
-function GetCodeModule($vbproj, $moduleName) {
+function GetCodeModule($vbproj, $moduleName)
+{
 
-    $codeModule = $vbproj.VBComponents($moduleName).CodeModule
+  $codeModule = $vbproj.VBComponents($moduleName).CodeModule
 
-    return $codeModule
-
-}
-
-function GetCode($codeModule){
-
-    [string]$code = $codeModule.lines(1,$codeModule.CountOfLines)
-    return $code
+  return $codeModule
 
 }
 
-function RemoveCode($codeModule){
+function GetCode($codeModule)
+{
 
-    return $codeModule.DeleteLines(1,$codeModule.CountOfLines)
+  [string]$code = $codeModule.lines(1,$codeModule.CountOfLines)
+  return $code
 
 }
 
-function ExportCode($codeModule, $path){
+function RemoveCode($codeModule)
+{
+
+  return $codeModule.DeleteLines(1,$codeModule.CountOfLines)
+
+}
+
+function ExportCode($codeModule, $path)
+{
 
   $COMPONENT_TYPE_MODULE = 1
   $COMPONENT_TYPE_CLASS = 2
   $COMPONENT_TYPE_FORM = 3
   $COMPONENT_TYPE_SPECIAL = 100
 
-  switch($codeModule.Parent.Type){
-      $COMPONENT_TYPE_FORM {$suffix = '.frm'}
-      $COMPONENT_TYPE_CLASS {$suffix = '.cls'}
-      $COMPONENT_TYPE_MODULE {$suffix = '.bas'}
-      $COMPONENT_TYPE_SPECIAL {$suffix = '.cls'}
-      default{1}
+  switch($codeModule.Parent.Type)
+  {
+    $COMPONENT_TYPE_FORM
+    {$suffix = '.frm'
+    }
+    $COMPONENT_TYPE_CLASS
+    {$suffix = '.cls'
+    }
+    $COMPONENT_TYPE_MODULE
+    {$suffix = '.bas'
+    }
+    $COMPONENT_TYPE_SPECIAL
+    {$suffix = '.cls'
+    }
+    default
+    {1
+    }
   }
 
   $moduleFilename = $codeModule.Name + $suffix
@@ -96,70 +119,71 @@ function ExportCode($codeModule, $path){
 
 }
 
-function RemoveCodeModule($vbProj,$codeModule){
+function RemoveCodeModule($vbProj,$codeModule)
+{
 
-    $vbProj.VBComponents.Remove($codeModule.Parent)
+  $vbProj.VBComponents.Remove($codeModule.Parent)
 }
 
-function ImportCode($vbProj, $path){
+function ImportCode($vbProj, $path, $moduleName)
+{
   $COMPONENT_TYPE_MODULE = 1
   $COMPONENT_TYPE_CLASS = 2
   $COMPONENT_TYPE_FORM = 3
   $COMPONENT_TYPE_SPECIAL = 100
 
-    $moduleName = (Get-Item $path).Basename
-    Write-Debug $moduleName
+  # $moduleName = (Get-Item $path).Basename
+  # Write-Debug $moduleName
 
-    #check if component exists
-    $component = $null
-    $componentType = -1
-    try{
-        $component = $vbProj.VBComponents($moduleName)
-        switch($component.Type){
-            $COMPONENT_TYPE_FORM {$componentType = 1}
-            $COMPONENT_TYPE_CLASS {$componentType = 1}
-            $COMPONENT_TYPE_MODULE {$componentType = 1}
-            $COMPONENT_TYPE_SPECIAL {$componentType = 2}
-            default{1}
-        }
-    }catch{
-
+  #check if component exists
+  $component = $null
+  $componentType = -1
+  try {
+    $component = $vbProj.VBComponents($moduleName)
+    switch($component.Type) {
+      $COMPONENT_TYPE_FORM {$componentType = 1 }
+      $COMPONENT_TYPE_CLASS {$componentType = 1 }
+      $COMPONENT_TYPE_MODULE {$componentType = 1 }
+      $COMPONENT_TYPE_SPECIAL {$componentType = 2 }
+      default {1 }
     }
-    #special modules like sheets,workbooks,accessforms
+  } catch {
+  }
+  #special modules like sheets,workbooks,accessforms
 
-    #exists normal - remove old
-    if ($componentType -eq 1){
-        RemoveCodeModule $vbProj $component.CodeModule
-    }
+  #exists normal - remove old
+  if ($componentType -eq 1) {
+    RemoveCodeModule $vbProj $component.CodeModule
+  }
 
-    #import code into
-    $newComponent = $vbProj.VBComponents.Import($path)
+  #import code into
+  $newComponent = $vbProj.VBComponents.Import($path)
 
-    #exists special
-    if ($componentType -eq 2){
-        $curModule = $component.CodeModule
-        $newModule = $newComponent.CodeModule
+  #exists special
+  if ($componentType -eq 2) {
+    $curModule = $component.CodeModule
+    $newModule = $newComponent.CodeModule
 
-        $newCode = GetCode $newModule
-        # $vbProj.VBComponents.Remove($newComponent)
+    $newCode = GetCode $newModule
 
+    RemoveCodeModule $vbProj $newModule
+    $newModule = $curModule
 
-        RemoveCodeModule $vbProj $newModule
-        $newModule = $curModule
+    RemoveCode $curModule
+    $curModule.AddFromString($newCode)
+  }
 
-        RemoveCode $curModule
-        $curModule.AddFromString($newCode)
-    }
-
-    return $newModule
+  return $newModule
 
 }
 
-function ModulesToHashtable($proj){
+function ModulesToHashtable($proj)
+{
 
   [Hashtable]$modules= @{}
 
-  foreach($component in $proj.VBComponents){
+  foreach($component in $proj.VBComponents)
+  {
     $name = $component.Name
     $code = GetCode $component.CodeModule
     $modules += @{$name=$code}
@@ -168,77 +192,91 @@ function ModulesToHashtable($proj){
   return $modules
 }
 
-function mergehashtables($htold, $htnew) {
-    $keys = $htold.getenumerator() | foreach-object {$_.key}
-    $keys | foreach-object {
-        $key = $_
-        if ($htnew.containskey($key))
-        {
-            $htold.remove($key)
-        }
+function mergehashtables($htold, $htnew)
+{
+  $keys = $htold.getenumerator() | foreach-object {$_.key}
+  $keys | foreach-object {
+    $key = $_
+    if ($htnew.containskey($key))
+    {
+      $htold.remove($key)
     }
-    $htnew = $htold + $htnew
-    return $htnew
+  }
+  $htnew = $htold + $htnew
+  return $htnew
 }
 #just for single level hashtable
-function Get-DeepClone_Single {
-    # [cmdletbinding()]
-    param(
-        $InputObject,
-        $filter
-    )
-    process {
-      $clone = @{}
+function Get-DeepClone_Single
+{
+  # [cmdletbinding()]
+  param(
+    $InputObject,
+    $filter
+  )
+  process
+  {
+    $clone = @{}
 
-      # if ($filter){
-      foreach($key in $InputObject.keys) {
-          $clone[$key] = $InputObject[$key]
-      }
-
-      return $clone
+    # if ($filter){
+    foreach($key in $InputObject.keys)
+    {
+      $clone[$key] = $InputObject[$key]
     }
+
+    return $clone
+  }
 }
 
 #support of multilevel nested hashtable
-function Get-DeepClone_Multi {
-    [cmdletbinding()]
-    param(
-        $InputObject
-    )
-    process
+function Get-DeepClone_Multi
+{
+  [cmdletbinding()]
+  param(
+    $InputObject
+  )
+  process
+  {
+    if($InputObject -is [hashtable])
     {
-        if($InputObject -is [hashtable]) {
-            $clone = @{}
-            foreach($key in $InputObject.keys)
-            {
-                $clone[$key] = Get-DeepClone $InputObject[$key]
-            }
-            return $clone
-        } else {
-            return $InputObject
-        }
+      $clone = @{}
+      foreach($key in $InputObject.keys)
+      {
+        $clone[$key] = Get-DeepClone $InputObject[$key]
+      }
+      return $clone
+    } else
+    {
+      return $InputObject
     }
+  }
 }
 
-function CompareHashtableKeys($sourceht, $targetht){
+function CompareHashtableKeys($sourceht, $targetht)
+{
 
-  foreach($item in $sourceht.keys){
-    if(-Not $targetht.ContainsKey($item)){
+  foreach($item in $sourceht.keys)
+  {
+    if(-Not $targetht.ContainsKey($item))
+    {
       $item
     }
   }
 
 }
 
-function CompareHashtableValues($sourceht, $targetht){
+function CompareHashtableValues($sourceht, $targetht)
+{
 
   # Get-TypeData $newht.keys
 
   # Compare-Object $sourceht $targetht -Property Keys
 
-  foreach($item in $sourceht.keys){
-    if($targetht.ContainsKey($item)){
-      if($sourceht[$item] -ne $targetht[$item]){
+  foreach($item in $sourceht.keys)
+  {
+    if($targetht.ContainsKey($item))
+    {
+      if($sourceht[$item] -ne $targetht[$item])
+      {
         $item
       }
     }
@@ -246,26 +284,32 @@ function CompareHashtableValues($sourceht, $targetht){
 
 }
 
-function HashToFolder($shadowRepo, $htchanged,$htadded,$htremoved){
-  foreach ($key in $htchanged.keys) {
+function HashToFolder($shadowRepo, $htchanged,$htadded,$htremoved)
+{
+  foreach ($key in $htchanged.keys)
+  {
     # Add-Content $shadowRepo$key $htchanged[$key]
     Set-Content $shadowRepo$key $htchanged[$key]
   }
 
-  foreach ($key in $htadded.keys) {
+  foreach ($key in $htadded.keys)
+  {
     Add-Content $shadowRepo$key $htadded[$key]
   }
 
-  foreach ($key in $htremoved.keys) {
+  foreach ($key in $htremoved.keys)
+  {
     Remove-Item $shadowRepo$key
   }
 
 }
 
-function FilterHash($hashTable, $keys){
+function FilterHash($hashTable, $keys)
+{
 
 }
-function HashFromFolder($shadowRepo){
+function HashFromFolder($shadowRepo)
+{
 
   $filesAll=Get-ChildItem -Path "${shadowRepo}*"
 
@@ -288,7 +332,8 @@ function HashFromFolder($shadowRepo){
 
 }
 
-function ChangesInVBE($excelFile, $cached){
+function ChangesInVBE($excelFile, $cached)
+{
   $app = GetExcel $excelFile
 
   $proj = GetProject $app
@@ -298,50 +343,54 @@ function ChangesInVBE($excelFile, $cached){
 }
 
 
-function RepoChanged($dbFile,$ExportLocation,$dteChange) {
+function RepoChanged($dbFile,$ExportLocation,$dteChange)
+{
 
-    Write-Information "repo changed $dteChange" -InformationAction Continue
+  Write-Information "repo changed $dteChange" -InformationAction Continue
 
-    $filesAll=Get-ChildItem -Path "${ExportLocation}*.*"
-    $filesChanged = $filesAll | Where-Object {$_.LastWriteTime -gt $dteChange}
+  $filesAll=Get-ChildItem -Path "${ExportLocation}*.*"
+  $filesChanged = $filesAll | Where-Object {$_.LastWriteTime -gt $dteChange}
 
-    # $filesChanged
-    $m = $filesChanged | measure
-    $m = $filesAll | measure
+  # $filesChanged
+  $m = $filesChanged | measure
+  $m = $filesAll | measure
 
-    Write-Information "repo changed $filesChanged.Count" -InformationAction Continue
-    # Write-Host "RepoChanged"
+  Write-Information "repo changed $filesChanged.Count" -InformationAction Continue
+  # Write-Host "RepoChanged"
 
-    #loop all changed files
-    $filesChanged | ForEach-Object {
-        $code = $_ | Get-Content
-        $name = $_.Name
+  #loop all changed files
+  $filesChanged | ForEach-Object {
+    $code = $_ | Get-Content
+    $name = $_.Name
 
-        Write-Information "repo changed $name - $code" -InformationAction Continue
+    Write-Information "repo changed $name - $code" -InformationAction Continue
 
-    }
+  }
 
-    $accessRun = GetApp $dbFile
+  $accessRun = GetApp $dbFile
 
-    if(!$accessRun) {
-        #     $modules.add($module.Name, $modDate)
-        Write-Information 'file closed' -InformationAction Continue
-    }else{
-        #     if($modDate -eq $modLog){
-        #
-        Write-Information "$accessRun is running" -InformationAction Continue
+  if(!$accessRun)
+  {
+    #     $modules.add($module.Name, $modDate)
+    Write-Information 'file closed' -InformationAction Continue
+  } else
+  {
+    #     if($modDate -eq $modLog){
+    #
+    Write-Information "$accessRun is running" -InformationAction Continue
 
-        # $accessRun.LoadFromText(5, "Testing", $ExportLocation+"Testing.txt")
-        #
-        #     }else{
-        #         # Write-Information "$modDate is newer will be update" -InformationAction Continue
-        #
-        #     }
-    }
+    # $accessRun.LoadFromText(5, "Testing", $ExportLocation+"Testing.txt")
+    #
+    #     }else{
+    #         # Write-Information "$modDate is newer will be update" -InformationAction Continue
+    #
+    #     }
+  }
 
 }
 
-function export {
+function export
+{
   param(
     [Parameter(Mandatory=$true)]$appPath
     ,$sourceDir
@@ -349,19 +398,27 @@ function export {
     ,[Nullable[boolean]]$sanitizeQuery
     ,[string]$secondarySourceDir
   )
-  process{
+  process
+  {
 
     #parameter defaults
-    if ([string]::IsNullOrEmpty($doFullExport)) {$doFullExport = $true}
-    if ([string]::IsNullOrEmpty($sanitizeQuery)) {$sanitizeQuery = $true}
-    if ([string]::IsNullOrEmpty($secondarySourceDir)) {$secondarySourceDir = ""}
+    if ([string]::IsNullOrEmpty($doFullExport))
+    {$doFullExport = $true
+    }
+    if ([string]::IsNullOrEmpty($sanitizeQuery))
+    {$sanitizeQuery = $true
+    }
+    if ([string]::IsNullOrEmpty($secondarySourceDir))
+    {$secondarySourceDir = ""
+    }
 
     #file exits ?
     $appfile = Get-Item $appPath
 
     $appPath = $appfile.FullName
 
-    if ($null -eq $sourceDir){
+    if ($null -eq $sourceDir)
+    {
       $sourceDir = getSourceDir $appPath
     }
 
@@ -384,9 +441,11 @@ function export {
 
     RemoveReference $app "MSAccessVCS"
 
-    if ($workerPath -eq $appPath){
+    if ($workerPath -eq $appPath)
+    {
       Write-Information "exporting worker mode ... " -InformationAction Continue
-    }else{
+    } else
+    {
       $ref = $app.References.AddFromFile($workerPath)
     }
 
@@ -416,9 +475,10 @@ function build(
   $sourceDir
   ,[Nullable[boolean]]$devWorker
   # ,[string]$secondarySourceDir
-  ){
+)
+{
 
-  if ([string]::IsNullOrEmpty($devWorker)) {$devWorker = $false}
+  if ([string]::IsNullOrEmpty($devWorker)) {$devWorker = $false }
   # if ([string]::IsNullOrEmpty($secondarySourceDir)) {$secondarySourceDir = ""}
 
   [string]$sourceDir = (Get-Item $sourceDir).FullName
@@ -428,9 +488,11 @@ function build(
   #prepare file names
   $targetName = ReadJsonConfig $sourceDir
 
-  if ($targetName -like "*.accdb"){
+  if ($targetName -like "*.accdb")
+  {
     $suffix = ".accdb"
-  }elseif ($targetName -like "*.accda"){
+  } elseif ($targetName -like "*.accda")
+  {
     $suffix = ".accda"
   }
 
@@ -445,7 +507,7 @@ function build(
   $targetFile = Join-Path $buildDir $targetName
   $buildFile = Join-Path $buildDir $buildName
 
-  if(Test-Path -Path $buildFile -PathType Leaf){
+  if(Test-Path -Path $buildFile -PathType Leaf) {
     Remove-Item $buildFile
   }
 
@@ -478,10 +540,12 @@ function build(
   $ref = $app.References.AddFromFile($workerFinalPath)
 
   #run build
-  if($devWorker -eq $true){
+  if($devWorker -eq $true)
+  {
     Build_Cli0 $sourceDir $app
     exit
-  }else{
+  } else
+  {
     $app.Run("Build_Cli", [ref]$sourceDir)
   }
 
@@ -496,7 +560,8 @@ function build(
   $app.Quit()
 
   #arcrhive file if needed
-  if(Test-Path -Path $targetFile -PathType Leaf){
+  if(Test-Path -Path $targetFile -PathType Leaf)
+  {
 
     # Build archive dir
     $archiveDir = Join-Path $buildDir 'archive'
@@ -516,8 +581,10 @@ function build(
   Rename-Item $buildFile $targetName
 
   #cleanup if worker path if devworker
-  if($devWorker -eq $true){
-    if(Test-Path -Path $workerTempPath -PathType Leaf){
+  if($devWorker -eq $true)
+  {
+    if(Test-Path -Path $workerTempPath -PathType Leaf)
+    {
       Remove-Item $workerTempPath
     }
   }
@@ -527,12 +594,14 @@ function build(
 function Build_Cli0 (
   $sourceDir
   ,$app
-  ){
+)
+{
 
   Write-Information "going over cli0 function" -InformationAction Continue
 
   $optionsFile = FolderHasVcsOptionsFile $sourceDir
-  if ($false -eq $optionsFile) {
+  if ($false -eq $optionsFile)
+  {
     Write-Information "vcs-options.json not found in source dir exiting" -InformationAction Continue
     exit
   }
@@ -541,6 +610,9 @@ function Build_Cli0 (
 
   $options.LoadOptionsFromFile([string]$optionsFile)
   $options.ExportFolder = [string]$sourceDir
+
+  $vcsOptions = GetVCSOptions $sourceDir
+  # $vcsOptions.Info.AddinVersion
 
   # $options
 
@@ -553,33 +625,53 @@ function Build_Cli0 (
   # $app.Run("RemoveNonBuiltInReferences")
 
   #TODO Run Before Build
-  if($null -ne $options.RunBeforeBuild){
+  if($null -ne $options.RunBeforeBuild)
+  {
     Write-Information "will run before build script" -InformationAction Continue
   }
 
   $containers = $app.Run("GetAllContainers")
 
+  $secondaryFolders = $vcsOptions.Options.SecondaryExportFolders
+  # $secondaryFolders
+
+  # Write-Information "initializeForms "$secondaryFolders -InformationAction Continue
+  # exit
+
   #Import Container
-  foreach ($container in $containers) {
+  foreach ($container in $containers)
+  {
     # Write-Information $container.Name -InformationAction Continue
     # $container.DateModified2()
     # $container
     # Write-Information "loop iteration" -InformationAction Continue
     $container.SourceFolder
 
-    if($container.SourceFolder -eq "modules"){
+
+    if($container.SourceFolder -eq "modules") {
       # $files = $container.GetFileList()
-      $files = GetFilesList_DbModule $sourceDir
-    }else{
+      $files = DbModule_GetFilesList $sourceDir $secondaryFolders
+
+    } else {
       $files = $container.GetFileList()
     }
 
-    # $files = $container.GetFileList()
+    if($container.SourceFolder -eq "modules") {
 
-    foreach($file in $files) {
-      $file
-      $container.Import([string]$file)
+      $docmd = $app.Docmd
+      $proj = GetProject $app
 
+      foreach($file in $files) {
+        $file
+        DbModule_Import $file $proj $docmd
+        # $container.Import([string]$file)
+      }
+
+    }else{
+      foreach($file in $files) {
+        $file
+        $container.Import([string]$file)
+      }
     }
 
   }
@@ -589,7 +681,7 @@ function Build_Cli0 (
   $app.Run("InitializeForms")
 
   #TODO Run After Build
-  if($null -ne $options.RunAfterBuild){
+  if($null -ne $options.RunAfterBuild) {
     Write-Information "will run after build script" -InformationAction Continue
   }
 
@@ -600,45 +692,222 @@ function Build_Cli0 (
   $vcsIndex.FullBuildDate = [datetime]$now
   $vcsIndex.Save([string]$sourceDir)
   $app.Run("CloseVcsIndex")
-
 }
 
-function GetFilesList_DbModule(
+
+function GetVCSOptions(
     [string]$sourceDir
     ){
 
-    $module = "modules"
+    $optionsFile = (Get-ChildItem -Path $sourceDir -File "vcs-options.json").FullName
+    $optionsRaw = Get-Content $optionsFile -Raw
 
-    $files = GetFilePathsInFolder (Join-Path $sourceDir $module) "*.bas"
-    $files += GetFilePathsInFolder (Join-Path $sourceDir $module) "*.cls"
+    $optionsRaw | ConvertFrom-Json
 
+}
+
+function DbModule_Import(
+  [string]$fileName
+  ,$proj
+  ,$docmd
+  ){
+
+  [string]$objectName = GetObjectNameFormFileName $fileName
+  $content = DbModule_ParseSourceFile $fileName $objectName
+
+  $tempFileName = [System.IO.Path]::GetTempFileName()
+
+  [System.IO.File]::WriteAllLines($tempFileName, $content, $sencd)
+
+  $module = ImportCode $proj $tempFileName $objectName
+  [int]$moduleTypeAc = 5
+
+  $docmd.Save($moduleTypeAc, $objectName)
+
+  $module
+
+}
+
+# function DbModule_Save(
+#     $app
+#    , $moduleName
+#     ){
+#
+#
+#
+# }
+
+
+function DbModule_ParseSourceFile(
+    [string]$fileName
+    ,[string]$objectName
+    ){
+
+    $content = (Get-Content $fileName).Split($ls)
+    [bool]$haveHeader = $false
+    [bool]$isClass = $false
+
+    # $fileName
+
+    #loop throug header
+    foreach ($ln in (0..8)){
+      if($content[$ln].StartsWith("VERSION 1.0 CLASS")){
+        $haveHeader = $true
+        $isClass = $true
+        break
+      }
+
+      if($content[$ln].StartsWith("Attribute VB_Name = """)){
+        $haveHeader = $true
+        break
+      }
+
+      if($content[$ln].StartsWith("Attribute VB_GlobalNameSpace = ")){
+        $isClass = $true
+        break
+      }
+
+    }
+
+    $contentF = @()
+
+    if ($true -ne $haveHeader){
+      if ($true -eq $isClass){
+        $contentF += "VERSION 1.0 CLASS"
+        $contentF += "BEGIN"
+        $contentF += "  MultiUse = -1  'True"
+        $contentF += "END"
+      }
+      $contentF += "Attribute VB_Name = ""$objectName"""
+    }
+
+    # $content
+
+    #module body
+    foreach ($line in $content){
+      $contentF += $line
+    }
+
+    #remove trailing space
+    # $contentF = $contentF.Remove(2)
+
+    #return final to string
+    $contentF -join $ls
+
+}
+
+function GetObjectNameFormFileName(
+    [string]$fileName
+    ){
+
+    $objectName = Split-Path -Path $fileName -Leaf
+    $objectName =[System.IO.Path]::GetFileNameWithoutExtension($objectName)
+
+    $fileCodes = @(
+       "%3C"
+      ,"%3E"
+      ,"%3A"
+      ,"%22"
+      ,"%2F"
+      ,"%5C"
+      ,"%7C"
+      ,"%3F"
+      ,"%2A"
+      ,"%25"
+      )
+
+    $forbiddenChars = @(
+       "<"
+      ,">"
+      ,":"
+      ,""""
+      ,"/"
+      ,"\"
+      ,"|"
+      ,"?"
+      ,"*"
+      ,"%"
+      )
+
+    foreach($x in (0..9)){
+      $objectName = $objectName.Replace($fileCodes[$x],$forbiddenChars[$x])
+    }
+
+    [string]$objectName
+
+}
+
+function DbModule_GetFilesList(
+  [string]$sourceDir
+  ,$secondaryFolders
+  ){
+
+  $module = "modules"
+  $extensions = @("*.bas","*.cls")
+
+  $files = @()
+  $localPath = (Join-Path $sourceDir $module)
+
+  foreach($ext in $extensions){
+    $files += GetFilePathsInFolder $localPath $ext
+  }
+
+  #check if there are any secondary source folders
+  if($PSBoundParameters.ContainsKey('secondaryFolders')){
+    $files += GetFilePathsInSecondaryFolder $sourceDir $secondaryFolders $module $extensions
+  }
+
+  $files
+
+}
+
+function GetFilePathsInSecondaryFolder(
+  [string]$sourceDir
+  ,$secordarySourceDirs
+  ,$sourceFolder
+  ,$extensions
+){
+
+  if($secordarySourceDirs.length -gt 0){
+
+    $files = @()
+
+    #loop all paths
+    foreach($relativePath in $secordarySourceDirs){
+      $sourcePath = $sourceDir + $ds + $relativePath + $ds + $sourceFolder
+
+      if(Test-Path -Path $sourcePath){
+        foreach($ext in $extensions) {
+          $files += GetFilePathsInFolder $sourcePath $ext
+        }
+      }
+    }
+
+    #return final array
     $files
-
+  }
 }
 
 
 function GetFilePathsInFolder(
-    [string]$folder
-    ,[string]$filePattern
-    ){
+  [string]$folder
+  ,[string]$filePattern
+){
 
-    if ([string]::IsNullOrEmpty($filePattern)) {$filePattern = "*.*"}
+  if ([string]::IsNullOrEmpty($filePattern)) {$filePattern = "*.*" }
 
-    # $folder+"\"+$filePattern
-
-    Get-ChildItem -Path $folder -Filter $filePattern -Recurse | Select-Object -ExpandProperty FullName
-    # Get-ChildItem -Path $folder+"\"+$filePattern -Recurse | Select-Object -ExpandProperty FullName
+  Get-ChildItem -Path $folder -Filter $filePattern -Recurse | Select-Object -ExpandProperty FullName
 }
 
 function FolderHasVcsOptionsFile (
-    $sourceDir
-    ){
+  $sourceDir
+){
 
   $optionsFile = Join-Path $sourceDir "vcs-options.json"
 
   if(Test-Path -Path $optionsFile -PathType Leaf){
     $optionsFile
-  }else{
+  } else {
     $false
   }
 
@@ -648,11 +917,11 @@ function FolderHasVcsOptionsFile (
 function RemoveReference(
   $app
   ,[string]$refName
-  ){
+){
 
   $refs = $app.References
 
-  foreach ($ref in $refs) {
+  foreach ($ref in $refs){
 
     if ($ref.Name -eq $refName){
       Write-Information "refrence removed $refName" -InformationAction Continue
@@ -665,8 +934,10 @@ function RemoveReference(
 
 function RenameWorker(
   $appPath
-  ){
-  if ($workerPath -eq $appPath){
+)
+{
+  if ($workerPath -eq $appPath)
+  {
 
     $workerName = (Get-Item $workerPath).Name
     $workerDir = Split-Path -Path $workerPath
@@ -683,13 +954,14 @@ function RenameWorker(
     # Remove-Item $workerFinalPath
     # $proj = GetProject $app
     # $proj.Name = "MSAccessVCS-lib"
-  }
-  else {
+  } else
+  {
     $workerFinalPath = $workerPath
   }
 }
 
-function ReadJsonConfig($sourceFile){
+function ReadJsonConfig($sourceFile)
+{
 
   $projectPath = Join-Path $sourceFile "vbe-project.json"
 
@@ -698,25 +970,29 @@ function ReadJsonConfig($sourceFile){
   return $json.Items.FileName
 
 }
-Function Get-AbsolutePath {
+Function Get-AbsolutePath
+{
   param([string]$Path)
   [System.IO.Path]::GetFullPath([System.IO.Path]::Combine((Get-Location).ProviderPath, $Path));
 }
 
 function getSourceDir(
   $appPath
-  ){
+)
+{
 
   #get full path from relative path
   $appDir = Split-Path -Path $appPath
 
   #build
-  if ((Split-Path -Path $appDir -Leaf) -eq 'build'){
+  if ((Split-Path -Path $appDir -Leaf) -eq 'build')
+  {
     $projDir = Split-Path -Path $appDir
   }
 
   #root
-  if($null -eq $projDir){
+  if($null -eq $projDir)
+  {
     $projDir = $appDir
   }
 
@@ -728,10 +1004,11 @@ function getSourceDir(
   $sourceProjFile = (Get-ChildItem -Path $projDir -Recurse -File -Filter "vbe-project.json")[0].FullName
 
   #if there is not any project file yet use app dir as project dir
-  if($null -eq $sourceProjFile){
+  if($null -eq $sourceProjFile)
+  {
     $sourceDir = Join-Path $projDir "src"
-  }
-  else{
+  } else
+  {
     $sourceDir = (Split-Path -Path $sourceProjFile)
   }
 
