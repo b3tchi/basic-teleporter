@@ -1,0 +1,199 @@
+﻿{
+  "Info": {
+    "Class": "clsDbTableDef",
+    "Description": "Access Table Properties"
+  },
+  "Items": {
+    "Name": "t_Table2",
+    "Properties": {
+      "Attributes": 0,
+      "ValidationRule": "",
+      "ValidationText": "",
+      "PublishToWeb": 1,
+      "Orientation": 0,
+      "OrderByOn": false,
+      "DefaultView": 2,
+      "DisplayViewsOnSharePointSite": 1,
+      "TotalsRow": false,
+      "FilterOnLoad": false,
+      "OrderByOnLoad": true,
+      "HideNewField": false,
+      "ReadOnlyWhenDisconnected": false,
+      "SubdatasheetName": "[None]"
+    },
+    "Fields": [
+      {
+        "Name": "ID",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "Field1",
+        "Type": 10,
+        "Properties": {
+          "Size": 255,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": true,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "UnicodeCompression": true,
+          "AppendOnly": false,
+          "Expression": "",
+          "DisplayControl": 109,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "f1",
+        "Type": 12,
+        "Properties": {
+          "Size": 0,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": true,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "UnicodeCompression": true,
+          "AppendOnly": false,
+          "Expression": "",
+          "TextFormat": 0,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "f2",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "DefaultValue": "0",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "DecimalPlaces": 255,
+          "Expression": "",
+          "DisplayControl": 109,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "f4",
+        "Type": 8,
+        "Properties": {
+          "Size": 8,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ShowDatePicker": 1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "f5",
+        "Type": 5,
+        "Properties": {
+          "Size": 8,
+          "DefaultValue": "0",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Format": "#,##0.00\" Kč\";-#,##0.00\" Kč\"",
+          "DecimalPlaces": 255,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 1029
+        }
+      },
+      {
+        "Name": "f8",
+        "Type": 1,
+        "Properties": {
+          "Size": 1,
+          "DefaultValue": "No",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Format": "Yes/No",
+          "Expression": "",
+          "DisplayControl": 106,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "f9",
+        "Type": 12,
+        "Properties": {
+          "Size": 0,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": true,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "UnicodeCompression": true,
+          "AppendOnly": false,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "f10",
+        "Type": 15,
+        "Properties": {
+          "Caption": "GUID",
+          "Size": 16,
+          "AllowZeroLength": false,
+          "AppendOnly": false,
+          "Expression": "",
+          "DisplayControl": 109,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      }
+    ]
+  }
+}

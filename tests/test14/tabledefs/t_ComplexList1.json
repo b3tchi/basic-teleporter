@@ -1,0 +1,73 @@
+﻿{
+  "Info": {
+    "Class": "clsDbTableDef",
+    "Description": "Access Table Properties"
+  },
+  "Items": {
+    "Name": "t_ComplexList1",
+    "Properties": {
+      "Attributes": 0,
+      "ValidationRule": "",
+      "ValidationText": "",
+      "PublishToWeb": 1,
+      "Orientation": 0,
+      "OrderByOn": false,
+      "DefaultView": 2,
+      "DisplayViewsOnSharePointSite": 1,
+      "TotalsRow": false,
+      "FilterOnLoad": false,
+      "OrderByOnLoad": true,
+      "HideNewField": false,
+      "ReadOnlyWhenDisconnected": false,
+      "SubdatasheetName": "[None]"
+    },
+    "Fields": [
+      {
+        "Name": "ID",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "Complex",
+        "Type": 109,
+        "Properties": {
+          "Size": 4,
+          "AllowZeroLength": false,
+          "UnicodeCompression": true,
+          "AppendOnly": false,
+          "Expression": "",
+          "AllowMultipleValues": true,
+          "DisplayControl": 111,
+          "RowSourceType": "Value List",
+          "RowSource": "\"var1\";1;\"a\";\"var2\";2;\"b\";\"var3\";3;\"c\"",
+          "BoundColumn": 1,
+          "ColumnCount": 3,
+          "ColumnHeads": false,
+          "ColumnWidths": "1440;1440;1440",
+          "ListRows": 16,
+          "ListWidth": "4320twip",
+          "LimitToList": true,
+          "TextAlign": 0,
+          "AllowValueListEdits": true,
+          "AggregateType": -1,
+          "ShowOnlyRowSourceValues": false,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      }
+    ]
+  }
+}

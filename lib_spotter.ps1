@@ -630,7 +630,7 @@ function Build_Cli0 (
     Write-Information "will run before build script" -InformationAction Continue
   }
 
-  $containers = $app.Run("GetAllContainers")
+  $containers = $app.Run("GetAllContainersPS")
 
   $secondaryFolders = $vcsOptions.Options.SecondaryExportFolders
   # $secondaryFolders
@@ -638,41 +638,58 @@ function Build_Cli0 (
   # Write-Information "initializeForms "$secondaryFolders -InformationAction Continue
   # exit
 
+
+  $docmd = $app.Docmd
+  $proj = GetProject $app
+
+  'modules'
+  $files = GetFilesList $sourceDir "modules" @("*.bas","*.cls") $secondaryFolders
+
+  foreach($file in $files) {
+    DbModule_Import $file $proj $docmd
+  }
+
+  'macros'
+  $files = GetFilesList $sourceDir "macros" @("*.bas") $secondaryFolders
+
+  foreach($file in $files) {
+    DbMacro_Import $file $app
+  }
+
+  'queries'
+  $files = GetFilesList $sourceDir "queries" @("*.sql") $secondaryFolders
+
+  foreach($file in $files) {
+    DbQuery_Import $file $app
+  }
+
+  'project settings'
+  $file = GetFileAsList $sourceDir "project.json"
+  DbProject_Import $file $app
+
+  'project propert settings'
+  $file = GetFileAsList $sourceDir "proj-properties.json"
+  DbProject_Import $file $app
+
+  'db properties'
+  $file = GetFileAsList $sourceDir "dbs-properties.json"
+  DbProperties_Import $file $app
+
+  'vbe properties'
+  $file = GetFileAsList $sourceDir "vbe-project.json"
+  DbVbeProject_Import $file $app
+
   #Import Container
-  foreach ($container in $containers)
-  {
-    # Write-Information $container.Name -InformationAction Continue
-    # $container.DateModified2()
-    # $container
-    # Write-Information "loop iteration" -InformationAction Continue
+  foreach ($container in $containers) {
     $container.SourceFolder
 
+    $files = $container.GetFileList()
 
-    if($container.SourceFolder -eq "modules") {
-      # $files = $container.GetFileList()
-      $files = DbModule_GetFilesList $sourceDir $secondaryFolders
-
-    } else {
-      $files = $container.GetFileList()
-    }
-
-    if($container.SourceFolder -eq "modules") {
-
-      $docmd = $app.Docmd
-      $proj = GetProject $app
-
-      foreach($file in $files) {
-        $file
-        DbModule_Import $file $proj $docmd
-        # $container.Import([string]$file)
-      }
-
-    }else{
       foreach($file in $files) {
         $file
         $container.Import([string]$file)
       }
-    }
+    # }
 
   }
 
@@ -694,15 +711,462 @@ function Build_Cli0 (
   $app.Run("CloseVcsIndex")
 }
 
+function SaveVcsOptions(){
+  Write-Information "!!TBD!!" -InformationAction Continue
+  #$myJson | ConvertTo-Json -Depth 4 | Out-File .\test.json
+}
+
+function DefaultVcsOptions(){
+  Write-Information "!!TBD!!" -InformationAction Continue
+}
 
 function GetVCSOptions(
-    [string]$sourceDir
+  [string]$sourceDir
+  ){
+
+  $optionsFile = (Get-ChildItem -Path $sourceDir -File "vcs-options.json").FullName
+  $optionsRaw = Get-Content $optionsFile -Raw
+
+  $optionsRaw | ConvertFrom-Json
+}
+
+function DbTableDef_Import(
+  [string]$fileName
+  ,$app
+  ,$tdata
+  ,$fdata
+  ){
+
+  $json = (Get-Content $fileName | ConvertFrom-Json)
+
+  $items=$json.Items
+
+  if($null -eq $items.Connect) {
+
+    $supportName = [System.IO.Path]::GetFileNameWithoutExtension($fileName) + ".xml"
+    $supportPath = Split-Path -Path $fileName
+
+    # $supportName
+    [int]$acStructureOnly=0 #constant
+
+    $app.ImportXML([string](Join-Path $supportPath $supportName), $acStructureOnly)
+
+  }
+
+  $db=$app.CurrentDb()
+  $tbl=$db.TableDefs($items.Name)
+  $keys=$json.Items.Properties.psobject.properties.Name
+
+  #table properties
+  foreach ($key in $keys){
+
+    $value=$items.Properties.$key
+    $type=$tdata.$key.Type
+
+    AcProperty_Create $tbl $key $type $value
+
+  }
+
+  #field properties
+  foreach ($fld in $json.Items.Fields) {
+    # $fld.Name
+    # $fldo.Name
+
+    $fldo=$tbl.Fields($fld.Name)
+    $fkeys=$fld.Properties.psobject.properties.Name
+
+    foreach($fkey in $fkeys){
+
+      $ftype=$fdata.$fkey.Type
+      $fvalue=$fld.Properties.$fkey
+
+      AcProperty_Create $fldo $fkey $ftype $fvalue
+
+    }
+
+  }
+
+}
+
+function DbQuery_Import(
+  [string]$fileName
+  ,$app
+  ){
+
+  # $tempFileName = [System.IO.Path]::GetTempFileName()
+  [string]$objectName = GetObjectNameFormFileName $fileName
+  $content = (Get-Content $fileName)
+
+  $db=$app.CurrentDb()
+  $qry=$db.CreateQueryDef([string]$objectName, [string]$content)
+
+  # $data=$app.CurrentData
+  # $qry=$data.AllQueries([string]$objectName)
+
+  $qry=$db.QueryDefs([string]$objectName)
+  $qry.SQL = [string]$content
+  # $qry
+
+  $queries=$db.QueryDefs
+  $queries.Refresh()
+
+  # $module
+  $fileName
+
+  # get support file name
+  $supportName = [System.IO.Path]::GetFileNameWithoutExtension($fileName) + ".json"
+
+}
+
+function DbMacro_Import(
+  [string]$fileName
+  ,$app
+  ){
+
+  [string]$objectName = GetObjectNameFormFileName $fileName
+
+  $tempFileName = [System.IO.Path]::GetTempFileName()
+  $content = (Get-Content $fileName).Split($ls)
+
+  [System.IO.File]::WriteAllLines($tempFileName, $content, $sencd)
+
+  [int]$macroTypeAc=4
+
+  LoadComponentFromText $tempFileName $objectName $macroTypeAc $app
+
+  # $module
+  $fileName
+
+}
+
+function LoadComponentFromText(
+    [string]$fileName
+    ,[string]$objectName
+    ,[int]$fileType
+    ,$app
     ){
 
-    $optionsFile = (Get-ChildItem -Path $sourceDir -File "vcs-options.json").FullName
-    $optionsRaw = Get-Content $optionsFile -Raw
+    $app.LoadFromText($fileType,$objectName,$fileName)
 
-    $optionsRaw | ConvertFrom-Json
+}
+
+function DbProject_Import(
+  [string]$fileName
+  ,$acc
+  ){
+
+  $proj = $acc.CurrentProject
+
+  $json = (Get-Content $fileName -Raw) | ConvertFrom-Json
+
+  $proj.RemovePersonalInformation=$json.Items.RemovePersonalInformation
+
+  #TODO Version Control
+}
+
+function DbVbeReferences_Import(
+  [string]$fileName
+  ,$acc
+  ){
+
+  $json = (Get-Content $fileName -Raw | ConvertFrom-Json) # -AsHashtable
+  $items=$json.Items
+  $vbproj = GetProject $acc
+  $refs = $vbproj.References
+
+  $existing_refs=@{}
+
+  foreach ($ref in $refs){
+     $existing_refs[$ref.GUID]=$ref.Name
+  }
+
+  $keys=$json.Items.psobject.properties.Name
+
+  foreach ($key in $keys){
+
+    $guid=$items.$key.GUID
+    $version=[string]($items.$key.Version) -split '.'
+    $maj=$version[0]
+    $min=$version[1]
+
+    #TODO Add ref from filename
+    if( -not $existing_refs.ContainsKey($guid)){
+      $newref=$refs.AddFromGuid([string]$guid, [int]$maj, [int]$min)
+      # Write-Information "adding ref $key" -InformationAction Continue
+    }else{
+      # Write-Information "exists ref $key" -InformationAction Continue
+
+    }
+
+
+  }
+
+  #read-only - properties
+  #FileName,Mode,Protection,Type
+
+  #TODO Version Control
+}
+
+
+function DbVbeProject_Import(
+  [string]$fileName
+  ,$acc
+  ){
+
+  $json = (Get-Content $fileName -Raw | ConvertFrom-Json) # -AsHashtable
+  $items=$json.Items
+  $vbproj = GetProject $acc
+
+  try{
+
+    $vbproj.Name=$items.Name
+    $vbproj.Description=$items.Name
+
+    $acc.SetOption("Conditional Compilation Arguments",$items.ConditionalCompilationArguments)
+  }catch{
+    Write-Information "failed to import vbeproject" -InformationAction Continue
+  }
+
+  try{
+
+    $vbproj.HelpContextId=$items.HelpContextId
+    $vbproj.HelpFile=$items.HelpFile
+
+  }catch{
+    Write-Information "failed to import help" -InformationAction Continue
+  }
+
+  #read-only - properties
+  #FileName,Mode,Protection,Type
+
+  #TODO Version Control
+}
+
+function DbListProperties(
+  $objs
+  ){
+
+  $exp=@{}
+
+  foreach( $obj in $objs ){
+    # 'loop'
+    # $obj
+    $props=$obj.Properties
+    # $props
+    foreach($prop in $props){
+      # $prop.Name
+      if ( -not $exp.ContainsKey($prop.Name)){
+        $exp[$prop.Name]+=@{'Type'=$prop.Type}
+      }
+    }
+  }
+
+  $exp
+
+}
+
+function DbListPropertiesLevelBellow(
+  $objs
+  ,[string]$l2name
+  ){
+
+  $exp=@{}
+
+  foreach( $obj0 in $objs ){
+    # 'loop'
+    # $obj
+    $l2items=$obj0.$l2name
+    foreach($obj in $l2items){
+      $props=$obj.Properties
+      foreach($prop in $props){
+        if ( -not $exp.ContainsKey($prop.Name)){
+          $exp[$prop.Name]+=@{'Type'=$prop.Type}
+        }
+      }
+    }
+  }
+
+  $exp
+
+}
+
+#custom function for merging two object on property level
+function Merge-Object ($target, $source) {
+    $source.psobject.Properties | % {
+        if ($_.TypeNameOfValue -eq 'System.Management.Automation.PSCustomObject' -and $target."$($_.Name)" ) {
+            Merge-Object $target."$($_.Name)" $_.Value
+        }
+        else {
+            $target | Add-Member -MemberType $_.MemberType -Name $_.Name -Value $_.Value -Force
+        }
+    }
+}
+
+function DbProjectProperties_Import(
+  [string]$fileName
+  ,$acc
+  ){
+
+  $proj=$acc.CurrentProject
+  $props=$proj.Properties
+  $existing_props=@{}
+
+  foreach ($prop in $props){
+
+    if ($prop.Name -ne 'Connection') {
+     $existing_props[$prop.Name]=$prop.Value
+    }
+  }
+
+  # $json = (Get-Content $fileName -Raw) | ConvertFrom-Json
+
+  foreach ($jprops in $json.Items){
+
+    $key=$jprops.psobject.properties.Name
+
+    if( ($key -ne "Name") -and ($key -ne "Connection") ){
+
+      $value=$jprops.psobject.properties.Value
+
+      #check if property exists
+      if($existing_props.ContainsKey($key)){
+        $props.item($key).Value=$value
+      }else{
+        $props.Add($key,$value)
+      }
+
+    }
+
+  }
+
+  #TODO Version Control
+}
+
+function DbProperties_Import(
+  [string]$fileName
+  ,$acc
+  ){
+
+  $db=$acc.CurrentDb()
+
+  $json = (Get-Content $fileName -Raw | ConvertFrom-Json) # -AsHashtable
+
+  $items=$json.Items
+  $keys=$json.Items.psobject.properties.Name
+
+  $exclude=@("Version","Connection","Name","CollatingOrder","Updatable","Transactions","RecordsAffected","DesignMasterID","ReplicaID","ShowDocumentTabs")
+
+  # exit
+  foreach ($key in $keys){
+
+    if( -not $exclude.Contains($key) ){
+
+      $value=$items.$key.Value
+      $type=$items.$key.Type
+
+      AcProperty_Create $db $key $type $value
+
+    }
+
+  }
+
+  #TODO Version Control
+}
+function AcProperty_Create(
+    $obj
+    ,$key
+    ,$type
+    ,$value
+    ){
+
+  $props=$obj.Properties
+
+    # switch($type){
+    #   1 {$value=[boolean]$value;break}
+    #   2 {$value=[string]$value;break}
+    #   3 {$value=[string]$value;break}
+    #   4 {$value=[string]$value;break}
+    #   10 {$value=[string]$value;break}
+    #   12 {$value=[string]$value;break}
+    #   15 {$value=[string]$value;break}
+    # }
+
+  $exists=(AcProperty_Check $obj $key $type $value)
+  # Write-Information "property set $key check: $exists" -InformationAction Continue
+
+    switch($exists){
+      0 {
+        $prop=$obj.CreateProperty([string]$key, [int]$type, [string]$value)
+          $props.Append($prop)
+          # Write-Information "creating $key" -InformationAction Continue
+      }
+      1 {
+        $props.Item([string]$key).Value=[string]$value
+        # Write-Information "creating $key" -InformationAction Continue
+      }
+    }
+
+
+
+# #check if property exists
+# if($true -eq $exists){
+#   $props.item([string]$key).Value=$value
+# }else{
+#   $xprop=$db.CreateProperty([string]$key, [int]$type, $value)
+#   $props.Append($xprop)
+# }
+}
+
+# Formats JSON in a nicer format than the built-in ConvertTo-Json does.
+function Format-Json([Parameter(Mandatory, ValueFromPipeline)][String] $json) {
+  $indent = 0;
+  ($json -Split '\n' |
+    % {
+      if ($_ -match '[\}\]]') {
+        # This line contains  ] or }, decrement the indentation level
+        $indent--
+      }
+      $line = (' ' * $indent * 2) + $_.TrimStart().Replace(':  ', ': ')
+      if ($_ -match '[\{\[]') {
+        # This line contains [ or {, increment the indentation level
+        $indent++
+      }
+      $line
+  }) -Join "`n"
+}
+
+function AcProperty_Check(
+    $obj
+    ,$key
+    ,$type
+    ,$value
+    ){
+
+  $props=$obj.Properties
+
+  try{
+    $propType=$props.item($key).Type
+  }catch{
+    $propType=-1
+  }
+
+  #not exists
+  if ($propType -eq -1){
+    return 0
+  }
+
+  #exist but wrong type
+  if ($propType -ne $type){
+    $props.Delete($key)
+    return 0
+  }
+
+  #nothing to do
+  if ($props.item($key).Value -eq $value){
+    return 2 #nothing
+  }else{
+    return 1 #change
+  }
 
 }
 
@@ -724,7 +1188,8 @@ function DbModule_Import(
 
   $docmd.Save($moduleTypeAc, $objectName)
 
-  $module
+  # $module
+  $fileName
 
 }
 
@@ -837,13 +1302,30 @@ function GetObjectNameFormFileName(
 
 }
 
-function DbModule_GetFilesList(
+function GetFileAsList(
   [string]$sourceDir
+  ,$fileName
+  ){
+
+  $files = @()
+
+  $optionsFile = (Get-ChildItem -Path $sourceDir -File $fileName).FullName
+
+  $files += $optionsFile
+
+  $files
+
+}
+
+function GetFilesList(
+  [string]$sourceDir
+  ,$module
+  ,$extensions
   ,$secondaryFolders
   ){
 
-  $module = "modules"
-  $extensions = @("*.bas","*.cls")
+  # $module = "modules"
+  # $extensions = @("*.bas","*.cls")
 
   $files = @()
   $localPath = (Join-Path $sourceDir $module)
