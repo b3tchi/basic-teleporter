@@ -741,6 +741,8 @@ function DbTableDef_Import(
 
   $items=$json.Items
 
+  $db=$app.CurrentDb()
+
   if($null -eq $items.Connect) {
 
     $supportName = [System.IO.Path]::GetFileNameWithoutExtension($fileName) + ".xml"
@@ -751,10 +753,28 @@ function DbTableDef_Import(
 
     $app.ImportXML([string](Join-Path $supportPath $supportName), $acStructureOnly)
 
+    $tbl=$db.TableDefs($items.Name)
+  }else{
+
+    $tbl=$db.CreateTableDef($items.Name)
+    $tbl.Connect=$items.Connect
+    $tbl.SourceTableName=$items.SourceTableName
+    $tbl.Attributes=$items.Attributes
+
+    try{
+      $db.TableDefs.Append($tbl)
+    }catch{
+
+    }
+
+    $tbl.RefreshLink()
+    ($db.TableDefs).Refresh()
+
+    #TODO Create Unique Index
+
+
   }
 
-  $db=$app.CurrentDb()
-  $tbl=$db.TableDefs($items.Name)
   $keys=$json.Items.Properties.psobject.properties.Name
 
   #table properties
