@@ -1,0 +1,16 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "create",
+    "Connect": "",
+    "Type": 64,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "RecordLocks": 2,
+    "UseTransaction": true
+  }
+}

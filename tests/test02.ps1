@@ -24,7 +24,7 @@ Write-Information "general dbModule" -InformationAction Continue
 #with layer above
 $sourceDir = "$PSScriptRoot.\..\src"
 
-$files = DbModule_GetFilesList $sourceDir
+$files = GetFilesList $sourceDir "modules" @("*.bas")
 # $files
 $files.length
 
@@ -38,6 +38,6 @@ $files.count
 
 
 Write-Information "FullBlownModulewithSecondary" -InformationAction Continue
-$files = DbModule_GetFilesList $sourceDir $secondaryFolders
+$files = GetFilesList $sourceDir "modules" @("*.bas") $secondaryFolders
 # $files
 $files.count

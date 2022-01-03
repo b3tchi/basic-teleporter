@@ -1,0 +1,17 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "delete",
+    "Connect": "",
+    "Type": 32,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "RecordLocks": 2,
+    "UseTransaction": true,
+    "FailOnError": false
+  }
+}

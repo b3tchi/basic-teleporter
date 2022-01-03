@@ -1,0 +1,2 @@
+﻿INSERT INTO t_Table1 ( Field1 )
+SELECT DISTINCTROW 'aa' AS Expr1;

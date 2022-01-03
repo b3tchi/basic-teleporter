@@ -1,0 +1,16 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "creTest",
+    "Connect": "",
+    "Type": 0,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "RecordLocks": 0,
+    "TotalsRow": false
+  }
+}

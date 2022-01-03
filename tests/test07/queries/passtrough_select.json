@@ -1,0 +1,15 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "passtrough_select",
+    "Connect": "ODBC;DRIVER=SQL Server;SERVER=CZASQL-901;Trusted_Connection=Yes;APP=Microsoft Office 2016;DATABASE=Production_FUp",
+    "Type": 112,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "LogMessages": false
+  }
+}

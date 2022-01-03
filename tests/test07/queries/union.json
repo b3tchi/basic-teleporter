@@ -1,0 +1,15 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "union",
+    "Connect": "",
+    "Type": 128,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "RecordLocks": 0
+  }
+}

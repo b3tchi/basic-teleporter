@@ -1,0 +1,17 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "crosstab",
+    "Connect": "",
+    "Type": 16,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "RecordLocks": 0,
+    "TotalsRow": false,
+    "ReadOnlyWhenDisconnected": false
+  }
+}

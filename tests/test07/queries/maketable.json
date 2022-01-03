@@ -1,0 +1,17 @@
+﻿{
+  "Info": {
+    "Class": "clsDbQuery",
+    "Description": "Query Access Properties"
+  },
+  "Items": {
+    "Name": "maketable",
+    "Connect": "",
+    "Type": 80,
+    "ReturnsRecords": true,
+    "Updatable": true,
+    "ODBCTimeout": 60,
+    "RecordLocks": 2,
+    "UseTransaction": true,
+    "TotalsRow": false
+  }
+}

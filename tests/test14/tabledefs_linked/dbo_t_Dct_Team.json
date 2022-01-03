@@ -1,0 +1,54 @@
+﻿{
+  "Info": {
+    "Class": "clsDbTableDef",
+    "Description": "Access Table Properties"
+  },
+  "Items": {
+    "Name": "dbo_t_Dct_Team",
+    "Connect": "ODBC;DRIVER=ODBC Driver 17 for SQL Server;SERVER=czasql-901;Trusted_Connection=Yes;APP=Microsoft Office;DATABASE=Production_FUp;",
+    "SourceTableName": "dbo.t_Dct_Team",
+    "PrimaryKey": "[TeamId]",
+    "Properties": {
+      "Attributes": 536870912,
+      "PublishToWeb": 1,
+      "Orientation": 0,
+      "OrderByOn": false,
+      "DefaultView": 2,
+      "DisplayViewsOnSharePointSite": 1,
+      "TotalsRow": false,
+      "FilterOnLoad": false,
+      "OrderByOnLoad": true,
+      "HideNewField": false,
+      "ReadOnlyWhenDisconnected": false,
+      "SubdatasheetName": "[None]"
+    },
+    "Fields": [
+      {
+        "Name": "TeamId",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "Title",
+        "Type": 10,
+        "Properties": {
+          "Caption": "field Caption",
+          "Description": "Description of the linked field",
+          "Size": 255,
+          "UnicodeCompression": false,
+          "DisplayControl": 109,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      }
+    ]
+  }
+}

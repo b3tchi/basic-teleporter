@@ -12,7 +12,6 @@ if (Test-Path -Path $testDb){
 $sourceDir = "$PSScriptRoot.\..\tests\test14"
 # $sourceFile = "vbe-project.json"
 
-$file = GetFilesList $sourceDir "tabledefs" $("*.json")
 
 $data = (Get-Content "$PSScriptRoot.\..\lib_data.json") | ConvertFrom-Json
 $tdata=$data.TableProperties
@@ -24,10 +23,11 @@ $fdata=$data.DbFieldTableProperties
 #create property
 $app = CreateAccess
 $app.Visible = $true
-
-'testing - create'
-
 $app.NewCurrentDatabase($testDb)
+
+'testing - createlocal'
+
+$file = GetFilesList $sourceDir "tabledefs" $("*.json")
 
 $file[0]
 DbTableDef_Import $file[0] $app $tdata $fdata
@@ -35,8 +35,13 @@ DbTableDef_Import $file[0] $app $tdata $fdata
 $file[1]
 DbTableDef_Import $file[1] $app $tdata $fdata
 
-$app.CloseCurrentDatabase()
+'testing - createlinked'
+$filelinked = GetFilesList $sourceDir "tabledefs_linked" $("*.json")
+
+$filelinked
+DbTableDef_Import $filelinked $app $tdata $fdata
 
 'exitting'
+$app.CloseCurrentDatabase()
 
 $app.Quit()

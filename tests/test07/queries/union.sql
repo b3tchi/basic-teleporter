@@ -1,0 +1,1 @@
+﻿SELECT 3 AS [All] FROM t_Table1 UNION ALL SELECT 5 FROM t_Table1;
