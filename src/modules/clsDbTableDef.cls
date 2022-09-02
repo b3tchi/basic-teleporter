@@ -39,7 +39,7 @@ Implements IDbComponent
 '---------------------------------------------------------------------------------------
 '
 Private Sub IDbComponent_Export()
-    
+
     Dim strFile As String
     Dim dbs As Database
     Dim tbl As DAO.TableDef
@@ -47,19 +47,19 @@ Private Sub IDbComponent_Export()
     Dim dItem As Dictionary
     Dim strJsonFile As String
     Dim linked As Long
-    
+
     Set dbs = CurrentDb
     Set tbl = dbs.TableDefs(m_Table.Name)
     strJsonFile = IDbComponent_SourceFile
-    
+
     linked = tbl.Connect <> vbNullString
 
     'For internal tables, we can export them as XML.
     If Not linked Then
-    
+
         'Add additional Access Query Parameters
         strFile = Left$(strJsonFile, Len(strJsonFile) - 5) & ".xml"
-    
+
         ' Save structure in XML format
         VerifyPath strFile
         Perf.OperationStart "App.ExportXML()"
@@ -68,27 +68,27 @@ Private Sub IDbComponent_Export()
         'Application.ExportXML acExportTable, m_Table.Name, , strFile, , , , acExportAllTableAndFieldProperties
         Application.ExportXML acExportTable, m_Table.Name, , strFile
         Perf.OperationEnd
-        
+
         ' Rewrite sanitized XML as formatted UTF-8 content
         'SanitizeXML strFile
         SanitizeXML_TableDef strFile
-  
+
     End If
-    
+
     'Access Table Properties - Save as JSON save both external and internal tables
     Set dItem = New Dictionary
-    
+
     With dItem
         .Add "Name", tbl.Name
         '.Add "Connect", SanitizeConnectionString(tbl.Connect)
         '.Add "SourceTableName", tbl.SourceTableName
         '.Add "Attributes", tbl.Attributes
-        
+
         If linked Then
         'dItem("Connect") = SanitizeConnectionString(tbl.Connect)
             .Add "Connect", SanitizeConnectionString(tbl.Connect)
             .Add "SourceTableName", tbl.SourceTableName
-    
+
             ' indexes (Find primary key)
             If IndexAvailable(tbl) Then
                 For Each idx In tbl.Indexes
@@ -99,53 +99,53 @@ Private Sub IDbComponent_Export()
                     End If
                 Next idx
             End If
-        
+
         End If
-        
+
         Dim clp As Dictionary
         Set clp = ListAllPropertiesJsonInObject(tbl, TablePropList(linked), False)
-        
+
         With clp
-        
+
             If .Exists("SubdatasheetName") Then
                 clp("SubdatasheetName") = "[None]"
             Else
                 .Add "SubdatasheetName", "[None]"
             End If
-               
+
         End With
-        
+
         'Adding table Properties
         .Add "Properties", clp
-        
+
         'Add field Properties to json
         Dim cl As Collection
         Set cl = New Collection
-        
+
         Dim dfld As Dictionary
         Dim fld As Field
-        
+
         For Each fld In tbl.Fields
-        
+
             Set dfld = New Dictionary
-            
+
             dfld.Add "Name", fld.Name
             dfld.Add "Type", fld.Type
             dfld.Add "Properties", ListAllPropertiesJsonInObject(fld, FieldPropList(fld.Type, linked), False)
-            
+
             cl.Add dfld
-        
+
         Next
-        
+
         .Add "Fields", cl
-        
+
     End With
-    
+
     'Stop
 
     ' Write export file.
     WriteJsonFile TypeName(Me), dItem, strJsonFile, "Access Table Properties"
-    
+
     ' Optionally save in SQL format - B3 disabled - unfortunetly DDL missing lot of features specific to access
     If Options.SaveTableSQL Then
         Log.Add "  " & m_Table.Name & " (SQL)", Options.ShowDebug
@@ -154,7 +154,7 @@ Private Sub IDbComponent_Export()
 
     ' Update index
     VCSIndex.Update Me, eatExport
-    
+
 End Sub
 
 '---------------------------------------------------------------------------------------
@@ -207,7 +207,7 @@ Public Sub SaveTableSqlDef(dbs As DAO.Database, strTable As String, strFolder As
             Next
             .Add ",", vbCrLf
         Next fld
-        
+
         .Remove 3   ' strip off last comma and crlf
 
         ' Constraints
@@ -240,7 +240,7 @@ Public Sub SaveTableSqlDef(dbs As DAO.Database, strTable As String, strFolder As
         strFile = strFolder & GetSafeFileName(strTable) & ".sql"
         WriteFile .GetStr, strFile
         Perf.OperationEnd
-        
+
     End With
 
 End Sub
@@ -365,7 +365,7 @@ End Function
 Private Function IndexAvailable(tdf As TableDef) As Boolean
 
     Dim lngTest As Long
-    
+
     If DebugMode(True) Then On Error Resume Next Else On Error Resume Next
     lngTest = tdf.Indexes.Count
     If Err Then
@@ -374,7 +374,7 @@ Private Function IndexAvailable(tdf As TableDef) As Boolean
         IndexAvailable = True
     End If
     CatchAny eelNoError, vbNullString, , False
-    
+
 End Function
 
 
@@ -391,23 +391,23 @@ Public Sub Import(strFile As String)
 
     Dim blnUseTemp As Boolean
     Dim strTempFile As String
-    
+
     ' Determine import type from extension
     Dim dTable As Dictionary
     Set dTable = ReadJsonFile(strFile)("Items")
-    
+
     If dTable("Connect") <> "" Then
 
         Call ImportLinkedTable(strFile)
-        
+
     Else
-        
+
         Dim strXmlFile As String
-        
+
         strXmlFile = Left$(strFile, Len(strFile) - 5) & ".xml"
-        
+
         blnUseTemp = (InStr(1, strXmlFile, "%") > 0)
-        
+
         If blnUseTemp Then
             ' Import from (safe) temporary file name.
             strTempFile = GetTempFile
@@ -417,24 +417,24 @@ Public Sub Import(strFile As String)
         Else
             Application.ImportXML strXmlFile, acStructureOnly
         End If
-        
+
     End If
-        
+
     ' Update index
     'strName = GetObjectNameFromFileName(strFile)
     Set m_Dbs = CurrentDb
     Set m_Table = m_Dbs.TableDefs(dTable("Name"))
-    
+
     'Load Table Properties
     Dim dProperties As Dictionary
     Dim pKey
-    
+
     Set dProperties = dTable("Properties")
-    
+
     For Each pKey In dProperties
-            
+
         Select Case pKey
-        
+
         Case _
              "Size" _
             , "FCMinReadVer" _
@@ -443,97 +443,97 @@ Public Sub Import(strFile As String)
             , "Attributes" _
 
         Case Else
-        
+
             On Error Resume Next
-            
+
             With m_Table
-            
+
                 .Properties(pKey).Value = dProperties(pKey)
-        
+
                 'Property not yet exists try to create
                 If Err.Number = 3270 Then
                     Err.Clear
 
                     .Properties.Append .CreateProperty(CStr(pKey), typeOfPropertyTable(CStr(pKey)), dProperties(pKey))
                 End If
-        
+
                 'Catch any additional error for property creation
                 If Err.Number <> 0 Then
                     Call CatchAny(eelError2, "Import TableDef - " & dTable("Name") & " - Set Property " & pKey, , True, True)
                 End If
-                
+
             End With
-    
+
             On Error GoTo 0
-    
+
         End Select
 
-    
+
     Next
-    
-    
+
+
     'Load Field Properties
     Dim dField As Dictionary
     Dim dProps As Dictionary
     Dim fld As Field
-    
+
     'Stop
     'loop fields
     For Each dField In dTable("Fields")
-        
+
         Set fld = m_Table.Fields(dField("Name"))
-    
+
         Dim key
-    
+
         Set dProps = dField("Properties")
-    
+
         For Each key In dProps
-            
+
             Select Case key
-            
+
             Case _
                   "Type" _
                 , "Size" _
                 , "Name" _
                 , "Attributes" _
-            
+
             Case Else
-            
+
                 On Error Resume Next
-                
+
                 With fld
-                
+
                     .Properties(key).Value = dProps(key)
-            
+
                     'Property not yet exists try to create
                     If Err.Number = 3270 Then
                         Err.Clear
 
                         .Properties.Append .CreateProperty(CStr(key), typeOfPropertyField(CStr(key)), dProps(key))
                     End If
-            
+
                     'Catch any additional error for property creation
                     If Err.Number <> 0 Then
                         Call CatchAny(eelError2, "Import TableDef - " & dTable("Name") & " - field - " & dField("Name") & "(" & .Type & ") - Set Property " & key, , True, True)
                     End If
-                    
+
                 End With
-        
+
                 On Error GoTo 0
-        
+
             End Select
-    
-    
+
+
         Next
-    
+
     Next
-    
+
     VCSIndex.Update Me, eatImport
-    
+
 End Sub
 
 Private Function typeOfPropertyTable(propertyName) As Long
-    
+
     Select Case propertyName
     Case _
         "Updatable" _
@@ -545,7 +545,7 @@ Private Function typeOfPropertyTable(propertyName) As Long
         , "ReadOnlyWhenDisconnected" _
 
         typeOfPropertyTable = 1
-   
+
     Case _
         "PublishToWeb" _
         , "Orientation" _
@@ -553,7 +553,7 @@ Private Function typeOfPropertyTable(propertyName) As Long
         , "DisplayViewsOnSharePointSite" _
 
         typeOfPropertyTable = 2
-        
+
     Case _
         "Attributes" _
         , "RecordCount" _
@@ -576,14 +576,14 @@ Private Function typeOfPropertyTable(propertyName) As Long
     Case _
         "DateCreated" _
         , "LastUpdated" _
-        
+
          typeOfPropertyTable = 8
-    
+
     Case _
         "GUID" _
 
         typeOfPropertyTable = 9
-        
+
     Case _
         "FCMinReadVer" _
         , "FCMinWriteVer" _
@@ -611,10 +611,10 @@ Private Function typeOfPropertyTable(propertyName) As Long
 
 
         typeOfPropertyTable = 12
-        
+
     Case Else
         typeOfPropertyTable = -1
-    
+
     End Select
 
 End Function
@@ -622,7 +622,7 @@ End Function
 
 
 Private Function typeOfPropertyField(propertyName) As Long
-    
+
     Select Case propertyName
     Case _
         "AllowMultipleValues" _
@@ -639,7 +639,7 @@ Private Function typeOfPropertyField(propertyName) As Long
         , "ValidateOnSet" _
 
         typeOfPropertyField = 1
-   
+
     Case _
         "DecimalPlaces" _
         , "IMEMode" _
@@ -649,7 +649,7 @@ Private Function typeOfPropertyField(propertyName) As Long
         , "TextFormat" _
 
         typeOfPropertyField = 2
-        
+
     Case _
         "BoundColumn" _
         , "CollatingOrder" _
@@ -661,9 +661,9 @@ Private Function typeOfPropertyField(propertyName) As Long
         , "OrdinalPosition" _
         , "ShowDatePicker" _
         , "Type" _
-        
+
         typeOfPropertyField = 3
-        
+
     Case _
         "AggregateType" _
         , "Attributes" _
@@ -678,9 +678,9 @@ Private Function typeOfPropertyField(propertyName) As Long
 
     Case _
         "GUID" _
-    
+
         typeOfPropertyField = 9
-        
+
     Case _
         "ColumnWidths" _
         , "Description" _
@@ -703,10 +703,10 @@ Private Function typeOfPropertyField(propertyName) As Long
         , "ValidationText" _
 
         typeOfPropertyField = 12
-        
+
     Case Else
         typeOfPropertyField = -1
-    
+
     End Select
 
 End Function
@@ -741,13 +741,13 @@ Private Function ImportLinkedTable(strFile As String) As Boolean
     Dim tdf As DAO.TableDef
     Dim strSql As String
     Dim strConnect As String
-    
+
     If DebugMode(True) Then On Error GoTo 0 Else On Error Resume Next
-    
+
     ' Read json file
     Set dTable = ReadJsonFile(strFile)
     If Not dTable Is Nothing Then
-    
+
         ' Link the table
         Set dItem = dTable("Items")
         Set dbs = CurrentDb
@@ -773,7 +773,7 @@ Private Function ImportLinkedTable(strFile As String) As Boolean
                 tdf.RefreshLink
             End If
             dbs.TableDefs.Refresh
-            
+
             ' Set index on linked table.
             If InStr(1, tdf.Connect, ";DATABASE=", vbTextCompare) = 1 Then
                 ' Can't create a key on a linked Access database table.
@@ -789,10 +789,10 @@ Private Function ImportLinkedTable(strFile As String) As Boolean
             End If
         End If
     End If
-    
+
     ' Report any unhandled errors
     CatchAny eelError, "Error importing " & strFile, ".ImportLinkedTable"
-    
+
 End Function
 
 
@@ -808,7 +808,7 @@ Private Function SafeAttributes(lngAttributes As Long) As Long
     Dim colAtts As Collection
     Dim varAtt As Variant
     Dim lngNew As Long
-    
+
     Set colAtts = New Collection
     With colAtts
         '.Add dbAttachedODBC
@@ -818,7 +818,7 @@ Private Function SafeAttributes(lngAttributes As Long) As Long
         .Add dbHiddenObject
         .Add dbSystemObject
     End With
-    
+
     For Each varAtt In colAtts
         ' Use boolean logic to check for bit flag
         If CBool((lngAttributes And varAtt) = varAtt) Then
@@ -826,10 +826,10 @@ Private Function SafeAttributes(lngAttributes As Long) As Long
             lngNew = lngNew + varAtt
         End If
     Next varAtt
-    
+
     ' Return attributes value after rebuilding from scratch.
     SafeAttributes = lngNew
-    
+
 End Function
 
 
@@ -844,7 +844,7 @@ End Function
 Private Function HasUniqueIndex(tdf As TableDef) As Boolean
 
     Dim idx As DAO.Index
-    
+
     If IndexAvailable(tdf) Then
         For Each idx In tdf.Indexes
             If idx.Unique Then
@@ -853,7 +853,7 @@ Private Function HasUniqueIndex(tdf As TableDef) As Boolean
             End If
         Next idx
     End If
-    
+
 End Function
 
 
@@ -865,10 +865,10 @@ End Function
 '---------------------------------------------------------------------------------------
 '
 Private Function IDbComponent_GetAllFromDB(Optional blnModifiedOnly As Boolean = False) As Collection
-    
+
     Dim tdf As TableDef
     Dim cTable As IDbComponent
-    
+
     ' Build collection if not already cached
     If m_AllItems Is Nothing Or (blnModifiedOnly <> m_blnModifiedOnly) Then
         Set m_AllItems = New Collection
@@ -891,7 +891,7 @@ Private Function IDbComponent_GetAllFromDB(Optional blnModifiedOnly As Boolean =
 
     ' Return cached collection
     Set IDbComponent_GetAllFromDB = m_AllItems
-        
+
 End Function
 
 

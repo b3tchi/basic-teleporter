@@ -1,0 +1,65 @@
+﻿{
+  "Info": {
+    "Class": "clsDbTableDef",
+    "Description": "Access Table Properties"
+  },
+  "Items": {
+    "Name": "Order",
+    "Properties": {
+      "Attributes": 0,
+      "ValidationRule": "",
+      "ValidationText": "",
+      "PublishToWeb": 1,
+      "Orientation": 0,
+      "OrderByOn": false,
+      "DefaultView": 2,
+      "DisplayViewsOnSharePointSite": 1,
+      "TotalsRow": false,
+      "FilterOnLoad": false,
+      "OrderByOnLoad": true,
+      "HideNewField": false,
+      "ReadOnlyWhenDisconnected": false,
+      "SubdatasheetName": "[None]"
+    },
+    "Fields": [
+      {
+        "Name": "OrderID",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "Order",
+        "Type": 10,
+        "Properties": {
+          "Size": 255,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": true,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "UnicodeCompression": true,
+          "AppendOnly": false,
+          "Expression": "",
+          "DisplayControl": 109,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      }
+    ]
+  }
+}

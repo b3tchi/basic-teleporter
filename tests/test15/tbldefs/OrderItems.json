@@ -1,0 +1,85 @@
+﻿{
+  "Info": {
+    "Class": "clsDbTableDef",
+    "Description": "Access Table Properties"
+  },
+  "Items": {
+    "Name": "OrderItems",
+    "Properties": {
+      "Attributes": 0,
+      "ValidationRule": "",
+      "ValidationText": "",
+      "PublishToWeb": 1,
+      "Orientation": 0,
+      "OrderByOn": false,
+      "DefaultView": 2,
+      "DisplayViewsOnSharePointSite": 1,
+      "TotalsRow": false,
+      "FilterOnLoad": false,
+      "OrderByOnLoad": true,
+      "HideNewField": false,
+      "ReadOnlyWhenDisconnected": false,
+      "SubdatasheetName": "[None]"
+    },
+    "Fields": [
+      {
+        "Name": "OrderItemID",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "Expression": "",
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "OrderItem",
+        "Type": 12,
+        "Properties": {
+          "Size": 0,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": true,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "UnicodeCompression": true,
+          "AppendOnly": false,
+          "Expression": "",
+          "TextFormat": 0,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      },
+      {
+        "Name": "OrderID",
+        "Type": 4,
+        "Properties": {
+          "Size": 4,
+          "DefaultValue": "",
+          "Required": false,
+          "AllowZeroLength": false,
+          "ValidationRule": "",
+          "ValidationText": "",
+          "AppendOnly": false,
+          "DecimalPlaces": 255,
+          "Expression": "",
+          "DisplayControl": 109,
+          "TextAlign": 0,
+          "AggregateType": -1,
+          "ResultType": 0,
+          "CurrencyLCID": 0
+        }
+      }
+    ]
+  }
+}

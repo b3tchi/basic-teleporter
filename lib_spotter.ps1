@@ -771,6 +771,23 @@ function DbTableDef_Import(
     ($db.TableDefs).Refresh()
 
     #TODO Create Unique Index
+    #if not access linked table create pseudo index
+    if( -not $items.Connect -like ";DATABASE=*"){
+
+      try{
+        $pkName = $items.PrimaryKey
+      }catch{
+        $pkName = ''
+      }
+
+      if ( ($pkName -ne '') -and (TableDefs_IndexAvailable $tbl) ) {
+        $tblName = $items.SourceTableName
+        $sql = "CREATE UNIQUE INDEX __uniqueindex ON [$tblName] ($pkName) WITH PRIMARY"
+        $dbFailOnError = 128
+        $db.Execute($sql,$dbFailOnError)
+        ($db.TableDefs).Refresh()
+      }
+    }
 
 
   }
@@ -805,6 +822,78 @@ function DbTableDef_Import(
     }
 
   }
+
+}
+
+
+function DbTableDef_HasUniqueIndex(
+    $tdf
+    ){
+
+    if(DbTableDef_IndexAvailable $tdf){
+      $idxs = $tdf.Indexes
+      foreach($idx in $idxs){
+        if($idx.Unique -eq $true){
+          return $true
+        }
+
+      }
+
+    }
+
+}
+
+function DbTableDef_IndexAvailable(
+    $tdf
+    ){
+
+    $test = 0
+
+    try{
+      $test = $tdf.Indexes.Count
+    }catch{
+
+    }
+
+    return $test -eq 0
+}
+
+function DbRelation_Import(
+  [string]$fileName
+  ,$app
+  ){
+
+  #exit if path not exists
+  if (!(Test-Path -Path $fileName)) {
+    return
+  }
+
+  $db = $app.CurrentDb()
+
+  $json = (Get-Content $filename | ConvertFrom-Json)
+
+  $items = $json.Items
+
+  $relation = $db.CreateRelation($items.Name, $items.Table, $items.ForeignTable)
+
+  $relation.Attributes = $items.Attributes
+
+  foreach($fld in ($items.Fields)){
+    $field = $relation.CreateField($fld.Name)
+    $field.ForeignName = $fld.ForeignName
+    $relation.Fields.Append($field)
+  }
+
+  try{
+    $db.TableDefs($items.Table).Indexes.Delete($items.Name)
+    $db.TableDefs($items.ForeignTable).Indexes.Delete($items.Name)
+    $db.Relations.Delete($items.Name)
+  }
+  catch{
+
+  }
+
+  $db.Relations.Append($relation)
 
 }
 
